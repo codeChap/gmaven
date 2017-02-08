@@ -223,6 +223,58 @@ Class Gmv
   	return (object) ['results' => $result->list, 'md' => $result->md];
 	}
 
+	/**
+	 * Pulls featured properties
+	 */
+	public function featured($page = 1, $size = 10)
+	{
+		// Set method and endpoint
+		$this->method = "POST";
+		$this->endpoint = "data/default/property/search";
+
+		// Set source fields
+		$this->sourceFields = 'Basic';
+
+		// Set request body
+		$this->params = array(
+			"query" => array_filter(
+				array(
+			    "sales.askingPrice" 						=> array("\$notNull" => "\$notNull"), // Asking price when for sale
+			    "vacancy.weightedAskingRental" 	=> array("\$notNull" => "\$notNull"), // Asking price when for rent
+			    "isArchived"										=> array("\$null" 	 => true) // Dont show archived
+		    )
+		  )
+    );
+
+		// Set page and results per page
+		$this->page = $page;
+		$this->size = $size;
+
+		// Go 
+		$result = $this->execute();
+
+		// Reset 
+		$this->sourceFields = false;
+		$this->query = false;
+		$this->page = false;
+		$this->size = 1;
+
+		// Get the first image
+		if(count($result)){
+			foreach($result->list as $k => $v){
+				if($images = $this->getImagesOf($v->id) and count($images) > 0){
+					$result->list[$k]->first = $images[0];
+				}
+				else{
+					$result->list[$k]->first = false;
+				}
+			}
+		}
+
+  	// Done
+  	return (object) ['results' => $result->list, 'md' => $result->md];
+	}
+
 
 	/**
 	 * Gets information on a property

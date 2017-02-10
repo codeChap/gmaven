@@ -289,7 +289,7 @@ Class Gmv
 		$this->endpoint = "data/default/property/search";
 
 		// Set source fields
-		$this->sourceFields = 'Basic';
+		$this->sourceFields = 'All';
 
 		// Set request body
 		$this->params = array(
@@ -348,7 +348,7 @@ Class Gmv
 
 		// Append URL
 		foreach($result->list as $k => $v){
-			$imgs[] = 'http://jhi.dev/libraries/vendor/codechap/gmaven/src/Gmaven/image.php?c='.$v->contentDomainKey.'&s='.$size.'&m='.round($v->updated);
+			$imgs[] = '{{path}}image.php?c='.$v->contentDomainKey.'&s='.$size.'&m='.round($v->updated);
 		}
 
   	// Done
@@ -362,6 +362,11 @@ Class Gmv
 	 */
 	public function execute()
 	{
+		// Check for key
+		if(empty($this->config['key'])){
+			throw new \Exception("Key not set.");
+		}
+
 		// Set params
 		$params = [];
 
@@ -392,8 +397,8 @@ Class Gmv
 
 		// Log perams request @todo
 		if(php_sapi_name() === 'cli' ){
-			print PHP_EOL . "ENDPOINT:" . $this->endpoint . PHP_EOL . ' Sending ';
-			print_r($params);
+			//print PHP_EOL . "ENDPOINT:" . $this->endpoint . PHP_EOL . ' Sending ';
+			//print_r($params);
 		}
 
 		// Set client
@@ -464,8 +469,8 @@ Class Gmv
 
 		// Log perams request @todo
 		if(php_sapi_name() === 'cli'){
-			print PHP_EOL . "RESULT: " . PHP_EOL;
-			print_r($finalOutput);
+			// print PHP_EOL . "RESULT: " . PHP_EOL;
+			// print_r($finalOutput);
 		}
 
 		// Get response

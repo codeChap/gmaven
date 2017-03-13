@@ -14,6 +14,11 @@ namespace CodeChap;
 Class Gmv
 {
 	/**
+	 * Default method
+	 */
+	private $method = "GET";
+
+	/**
 	 * Body parmams to parse to Gmaven
 	 */
 	private $params = false;
@@ -32,6 +37,11 @@ Class Gmv
 	 * Results per page
 	 */
 	private $size = false;
+
+	/**
+	 * Sort by
+	 */
+	private $sortBy = false;
 
 	/**
 	 * Default config settings
@@ -123,21 +133,21 @@ Class Gmv
 		$this->endpoint = "data/default/property/aggregates";
 
 		// Set source fields
-		$this->sourceFields = array(
+		$this->sourceFields = [
 			'id',
 			'basic.suburb'
-		);
+		];
 
 		// Set request body
-		$this->params = array(
-			'query' => array(
-				'basic.province' => array("\$in" => $province),
-			),
-			'aggregates' => array(
+		$this->params = [
+			'query' => [
+				'basic.province' => ["\$in" => $province],
+			],
+			'aggregates' => [
 				'basic.suburb' => 1,
-			),
+			],
 			'size' => -1
-		);
+		];
 
 		// Go 
 		$result = $this->execute();
@@ -169,29 +179,33 @@ Class Gmv
 		$this->sourceFields = 'Basic';
 
 		// Set request body
-		$this->params = array(
+		$this->params = [
 			"query" => array_filter(
-				array(
-			    "vacancy.currentVacantArea" 		=> $search->rentals ? array("\$gte" => 1) : false, // Rentals
-			    "basic.forSale" 								=> $search->sales ?  array("\$eq" => true) : false, // Sales
-			    "basic.primaryCategory" 				=> $search->types ? array("\$in" => $search->types) : false, // Types
-			    "basic.province"								=> $search->provinces ? array("\$in" => $search->provinces) : false, // Provinces
-			    "basic.suburb" 									=> $search->suburbs ? array("\$in" => $search->suburbs) : false, // Suburbs
-			    "basic.city" 										=> $search->cities ? array("\$in" => $search->cities) : false, // Cities
-			    "sales.askingPrice" 						=> $search->sales ? array("\$notNull" => "\$notNull") : false, // Asking price when for sale
-			    "vacancy.weightedAskingRental" 	=> $search->sales ? false : array("\$notNull" => "\$notNull"), // Asking price when for rent
+				[
+			    "vacancy.currentVacantArea" 		=> ! empty($search->rentals) ? array("\$gte" => 1) : false, // Rentals
+			    "basic.forSale" 								=> ! empty($search->sales) ?  array("\$eq" => true) : false, // Sales
+			    "basic.primaryCategory" 				=> ! empty($search->types) ? array("\$in" => $search->types) : false, // Types
+			    "basic.province"								=> ! empty($search->provinces) ? array("\$in" => $search->provinces) : false, // Provinces
+			    "basic.suburb" 									=> ! empty($search->suburbs) ? array("\$in" => $search->suburbs) : false, // Suburbs
+			    "basic.city" 										=> ! empty($search->cities) ? array("\$in" => $search->cities) : false, // Cities
+			    "sales.askingPrice" 						=> ! empty($search->sales) ? array("\$notNull" => "\$notNull") : false, // Asking price when for sale
+			    "vacancy.weightedAskingRental" 	=> ! empty($search->sales) ? false : array("\$notNull" => "\$notNull"), // Asking price when for rent
 			    "isArchived"										=> array("\$null" 	=> true), // Dont show archived
-		    )
+		    ]
 		  )
-    );
+    ];
 
    	// Append Size of property
-		if($search->size[0] > 0){
-			$this->params['query']['basic.gla'] = array("\$gte" => $search->size[0]);
+   	if(isset($search->size[0])){
+			if($search->size[0] > 0){
+				$this->params['query']['basic.gla'] = array("\$gte" => $search->size[0]);
+			}
 		}
 
-		if($search->size[1] > 0){
-			$this->params['query']['basic.gla'] = array("\$lte" => $search->size[1]);
+		if(isset($search->size[0])){
+			if($search->size[1] > 0){
+				$this->params['query']['basic.gla'] = array("\$lte" => $search->size[1]);
+			}
 		}
 
 		// Set page and results per page
@@ -222,59 +236,6 @@ Class Gmv
   	// Done
   	return (object) ['results' => $result->list, 'md' => $result->md];
 	}
-
-	/**
-	 * Pulls featured properties
-	 */
-	public function featured($page = 1, $size = 10)
-	{
-		// Set method and endpoint
-		$this->method = "POST";
-		$this->endpoint = "data/default/property/search";
-
-		// Set source fields
-		$this->sourceFields = 'Basic';
-
-		// Set request body
-		$this->params = array(
-			"query" => array_filter(
-				array(
-			    "sales.askingPrice" 						=> array("\$notNull" => "\$notNull"), // Asking price when for sale
-			    "vacancy.weightedAskingRental" 	=> array("\$notNull" => "\$notNull"), // Asking price when for rent
-			    "isArchived"										=> array("\$null" 	 => true) // Dont show archived
-		    )
-		  )
-    );
-
-		// Set page and results per page
-		$this->page = $page;
-		$this->size = $size;
-
-		// Go 
-		$result = $this->execute();
-
-		// Reset 
-		$this->sourceFields = false;
-		$this->query = false;
-		$this->page = false;
-		$this->size = 1;
-
-		// Get the first image
-		if(count($result)){
-			foreach($result->list as $k => $v){
-				if($images = $this->getImagesOf($v->id) and count($images) > 0){
-					$result->list[$k]->first = $images[0];
-				}
-				else{
-					$result->list[$k]->first = false;
-				}
-			}
-		}
-
-  	// Done
-  	return (object) ['results' => $result->list, 'md' => $result->md];
-	}
-
 
 	/**
 	 * Gets information on a property
@@ -292,13 +253,12 @@ Class Gmv
 		$this->sourceFields = 'All';
 
 		// Set request body
-		$this->params = array(
-			"query" => array_filter(
-				array(
-			    "id" => array("\$eq" => $pid)
-		    )
+		$this->params = [
+			"query" => array_filter([
+					"id" => array("\$eq" => $pid)
+		  	]
 		  )
-    );
+    ];
 
 		// Go 
 		$result = $this->execute()->list[0];
@@ -309,7 +269,7 @@ Class Gmv
 		$this->page = false;
 		$this->size = 1;
 
-		// Get the first image
+		// Get images
 		if($images = $this->getImagesOf($result->id, 9, 5, 'medium') and count($images) > 0){
 			$result->images = $images;
 		}
@@ -317,9 +277,85 @@ Class Gmv
 			$result->images = [];
 		}
 
+		// Get agents responsible
+		//$result->agent = $this->users($result->id);
+
   	// Done
   	return (object) ['result' => $result];
 	}
+
+	/**
+	 * 
+	 */
+	public function users($pid)
+	{
+		// Set method and endpoint
+		$this->method = "GET";
+		$this->endpoint = "data/entity/property/".$pid."/responsibility";
+		$result = $this->execute();
+
+		// Done
+		return (object) ['result' => $result];
+	}
+
+	/**
+	 * Pulls featured properties
+	 */
+	public function featured($page = 1, $size = 10)
+	{
+		// Set method and endpoint
+		$this->method = "POST";
+		$this->endpoint = "data/default/property/search";
+
+		// Set source fields
+		$this->sourceFields = 'Basic';
+
+		// Set request body
+		$this->params = [
+			"query" => array_filter([
+			    "sales.askingPrice" 						=> ["\$notNull" => "\$notNull"], // Asking price when for sale
+			    //"vacancy.weightedAskingRental" 	=> ["\$notNull" => "\$notNull"], // Asking price when for rent
+			    "isArchived"										=> ["\$null" 	  => true], // Dont show archived
+			  ]
+		  ),
+    ];
+
+		// Set page and results per page
+		$this->page = $page;
+		$this->size = $size;
+
+		// Set sort field
+		$this->sortBy = "vacancy.weightedAskingRental";
+
+		// Go 
+		$result = $this->execute();
+
+		// Reset 
+		$this->sourceFields = false;
+		$this->query = false;
+		$this->page = false;
+		$this->size = 1;
+
+		// Get the first image
+		if(count($result)){
+			foreach($result->list as $k => $v){
+				if($images = $this->getImagesOf($v->id) and count($images) > 0){
+					$result->list[$k]->first = $images[0];
+				}
+				else{
+					
+					// Non images dont belong in a featured list
+					//unset($result->list[$k]);
+				}
+			}
+		}
+
+  	// Done
+  	return (object) ['results' => $result->list, 'md' => $result->md];
+	}
+
+
+
 
 	/**
 	 * Gets the images of a property
@@ -392,7 +428,7 @@ Class Gmv
 
 		// Add pagination
 		if($this->page and $this->size){
-			$params['page'] = array("number" => $this->page, "size" => $this->size);
+			$params['page'] = ["number" => $this->page, "size" => $this->size];
 		}
 
 		// Log perams request @todo
@@ -401,34 +437,90 @@ Class Gmv
 			//print_r($params);
 		}
 
+		// Sort and then add sort by
+		ksort($params);
+
+		// Set sort field
+		if($this->sortBy){
+			$params["sortFields"] = [
+				"field" => $this->sortBy,
+				"desc"  => true // @todo
+			];
+		}
+
+		// Build array for client
+		$clientDataArray = [
+			'base_uri' => $this->config['url'],
+			'on_stats' => function (\GuzzleHttp\TransferStats $stats) use (&$url) {
+      	$url = $stats->getEffectiveUri();
+    	}
+		];
+
+		// Does client require params
+		if(count($params)){
+			$clientDataArray['json'] = $params;
+		}
+
 		// Set client
-		$client = new \GuzzleHttp\Client(
-			array(
-				'base_uri' => $this->config['url'],
-				'json' => $params
-			)
-		);
+		$client = new \GuzzleHttp\Client($clientDataArray);
 
 		// Set response
-		$response = $client->request($this->method, $this->endpoint, [
-			'headers' => [
-				"gmaven.apiKey" => $this->config['key'],
-	  		"Content-Type" => "application/json"
-			]
-		]);
+		try{
+			$response = $client->request($this->method, $this->endpoint, [
+				'headers' => [
+					"gmaven.apiKey" => $this->config['key'],
+		  		"Content-Type"  => "application/json"
+				]
+			]);
+		}
+		catch(\GuzzleHttp\Exception\ClientException $e){
+
+			// Pull error and kick up a fuss
+			$errorMessage = ['Gmaven client endpoint error'];
+			$response = $e->getResponse();
+			$r = $response->getBody()->getContents();
+			if($jsonErrorMessage = json_decode($r)){
+				$errorMessage[] = ': '.$jsonErrorMessage->Message;
+			}
+
+			// Log it
+			$this->log($url, $response->getStatusCode(), implode($errorMessage));
+
+			// Throw it
+    	throw new \Exception(implode($errorMessage), $response->getStatusCode());
+		}
+		catch(\GuzzleHttp\Exception\ServerException $e){
+
+			// Pull error and kick up a fuss
+			$errorMessage = ['Gmaven error'];
+			$response = $e->getResponse();
+			$r = $response->getBody()->getContents();
+			if($jsonErrorMessage = json_decode($r)){
+				$errorMessage[] = ': '.$jsonErrorMessage->Message;
+			}
+
+			// Log it
+			$this->log($url, $response->getStatusCode(), implode($errorMessage));
+
+			// Throw it
+    	throw new \Exception(implode($errorMessage), $response->getStatusCode());
+		}
 
 		// Get returned status code of request
 		$statusCode = $response->getStatusCode();
 
 		// Normal response
 		if($statusCode == 200){
+
+			// Clean content type
+			$contentType = strtolower($response->getHeader('Content-Type')[0]);
 			
 			// Action by content type
-			switch($response->getHeader('Content-Type')[0]){
+			switch($contentType){
 				
 				// Decode Json output
 				case 'application/json; charset=utf-8' :
-				$finalOutput = json_decode($response->getBody()->getContents(), false);
+					$finalOutput = json_decode($response->getBody()->getContents(), false);
 				break;
 
 				// Binaray content
@@ -461,6 +553,10 @@ Class Gmv
 				throw new \Exception("Gmaven service is unavailable or overloaded, please try again later.");
 				break;
 
+				case '500' :
+				throw new \Exception("Gmaven service error, please report this error.");
+				break;
+
 				// Something else went wrong
 				default :
 				throw new \Exception($response->getBody()->getContents());
@@ -475,6 +571,18 @@ Class Gmv
 
 		// Get response
 		return $finalOutput;
+	}
+
+	/**
+	 * Log something
+	 *
+	 * @param string $url     The url that we are loggin against
+	 * @param string $code    The error code
+	 * @param string $message The error message
+	 */
+	private function log($url, $code, $message)
+	{
+		@file_put_contents(__DIR__.'/jhi.log', (date('d F Y h:i:s') . ': ' . $url . ': ' . $code . ' - ' . $message . PHP_EOL), FILE_APPEND);
 	}
 
 	// Prevent cloning and unserializing

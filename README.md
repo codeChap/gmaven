@@ -10,3 +10,6 @@ The recommended way to install is through
 
 ## Usage
 See tests folder for usage.
+
+### Tests
+KEY={{Keyhere}} phpunit --bootstrap tests/bootstrap.php tests/searchTest.php 

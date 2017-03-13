@@ -1,6 +1,6 @@
 <?php
 
-return array(
+return [
 	'id',
   '_updated',
   'afs.acquisitionDate',
@@ -129,8 +129,8 @@ return array(
   //'office.aircon.refrigerantGas',
   //'office.aircon.type',
   //'office.amenities',
-  //'office.amenities._key',
-  //'office.amenities.exists',
+  'office.amenities._key',
+  'office.amenities.exists',
   //'office.backupWaterSupply',
   //'office.backupWaterSupplyOther',
   //'office.buildingShape',
@@ -315,6 +315,7 @@ return array(
   //'vacancy.leasing.specialDeals',
   //'vacancy.leasing.suretyFormula',
   //'vacancy.leasing.suretyRequired',
+
   //'vacancy.parkingBays',
   //'vacancy.parkingBays._key',
   //'vacancy.parkingBays.msNumber',
@@ -322,6 +323,7 @@ return array(
   //'vacancy.parkingBays.number',
   //'vacancy.parkingBays.vacantNumber',
   //'vacancy.parkingBays.value',
+
   'vacancy.signoffDate',
   'vacancy.totalUnitArea',
   'vacancy.unitSignoffDate',
@@ -347,4 +349,4 @@ return array(
   'yard.leasedSeparately',
   'yard.other',
   'yard.type'
-);
+];

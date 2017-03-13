@@ -8,7 +8,7 @@
   require(realpath(__DIR__.'/../../../../').'/autoload.php');
 
   // Find Gmaven Key
-  $key = include(__DIR__ . DIRECTORY_SEPARATOR . 'private.php');
+  $key = include(__DIR__ . DIRECTORY_SEPARATOR . 'private/key.php');
 
   // Security
   $inputs = filter_input_array(INPUT_GET, array(

@@ -61,7 +61,7 @@ Class Gmv
   	$this->config = $config + $this->config;
 
   	// Record the key so that we can load images later
-  	$keyFile = __DIR__ . DIRECTORY_SEPARATOR . 'private.php';
+  	$keyFile = __DIR__ . DIRECTORY_SEPARATOR . 'private/key.php';
   	$contents = '<?php return "'.$this->config['key'].'"; ?>';
   	file_put_contents($keyFile, $contents);
 	}

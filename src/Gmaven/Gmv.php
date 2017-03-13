@@ -354,9 +354,6 @@ Class Gmv
   	return (object) ['results' => $result->list, 'md' => $result->md];
 	}
 
-
-
-
 	/**
 	 * Gets the images of a property
 	 *
@@ -582,7 +579,7 @@ Class Gmv
 	 */
 	private function log($url, $code, $message)
 	{
-		@file_put_contents(__DIR__.'/jhi.log', (date('d F Y h:i:s') . ': ' . $url . ': ' . $code . ' - ' . $message . PHP_EOL), FILE_APPEND);
+		@file_put_contents(__DIR__.'/error.log', (date('d F Y h:i:s') . ': ' . $url . ': ' . $code . ' - ' . $message . PHP_EOL), FILE_APPEND);
 	}
 
 	// Prevent cloning and unserializing

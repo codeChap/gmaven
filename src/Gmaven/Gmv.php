@@ -169,7 +169,7 @@ Class Gmv
 	 * @param   int    $size   The number of results per page
 	 * @return  object
 	 */
-	public function search($search, $page = 1, $size = 10)
+	public function search($search, $page = 1, $size = 10, $sortBy = false, $desc = true)
 	{
 		// Set method and endpoint
 		$this->method = "POST";
@@ -182,14 +182,14 @@ Class Gmv
 		$this->params = [
 			"query" => array_filter(
 				[
-			    "vacancy.currentVacantArea" 		=> ! empty($search->rentals) ? array("\$gte" => 1) : false, // Rentals
-			    "basic.forSale" 								=> ! empty($search->sales) ?  array("\$eq" => true) : false, // Sales
-			    "basic.primaryCategory" 				=> ! empty($search->types) ? array("\$in" => $search->types) : false, // Types
-			    "basic.province"								=> ! empty($search->provinces) ? array("\$in" => $search->provinces) : false, // Provinces
-			    "basic.suburb" 									=> ! empty($search->suburbs) ? array("\$in" => $search->suburbs) : false, // Suburbs
-			    "basic.city" 										=> ! empty($search->cities) ? array("\$in" => $search->cities) : false, // Cities
-			    "sales.askingPrice" 						=> ! empty($search->sales) ? array("\$notNull" => "\$notNull") : false, // Asking price when for sale
-			    "vacancy.weightedAskingRental" 	=> ! empty($search->sales) ? false : array("\$notNull" => "\$notNull"), // Asking price when for rent
+			    "vacancy.currentVacantArea" 		=> ! empty($search->rentals) ?   ["\$gte" => 1]                 : false, // Rentals
+			    "basic.forSale" 								=> ! empty($search->sales) ?     ["\$eq" => true]               : false , // Sales
+			    "basic.primaryCategory" 				=> ! empty($search->types) ?     ["\$in" => $search->types]     : false, // Types
+			    "basic.province"								=> ! empty($search->provinces) ? ["\$in" => $search->provinces] : false, // Provinces
+			    "basic.suburb"  								=> ! empty($search->suburbs) ?   ["\$in" => $search->suburbs]   : false, // Suburbs
+			    "basic.city" 										=> ! empty($search->cities) ?    ["\$in" => $search->cities]    : false, // Cities
+			    "sales.askingPrice" 						=> ! empty($search->sales) ?     ["\$notNull" => "\$notNull"]   : false, // Asking price when for sale
+			    "vacancy.weightedAskingRental" 	=> empty($search->sales) ?       ["\$notNull" => "\$notNull"]   : false, // Asking price when for rent
 			    "isArchived"										=> array("\$null" 	=> true), // Dont show archived
 		    ]
 		  )
@@ -211,6 +211,11 @@ Class Gmv
 		// Set page and results per page
 		$this->page = $page;
 		$this->size = $size;
+
+		// Set sort field
+		if($sortBy){
+			$this->sortBy = [$sortBy => $desc];
+		}
 
 		// Go 
 		$result = $this->execute();
@@ -325,7 +330,7 @@ Class Gmv
 		$this->size = $size;
 
 		// Set sort field
-		$this->sortBy = "vacancy.weightedAskingRental";
+		$this->sortBy = ["sales.askingPrice" => false];
 
 		// Go 
 		$result = $this->execute();
@@ -405,8 +410,14 @@ Class Gmv
 
 		// Add Query
 		if($this->params){
-			$params = $this->params;
+
+			if(isset($this->params['query']['basic.suburb'])){
+				//$this->params['query']['basic.suburb'] = $this->array_filter_recursive($this->params['query']['basic.suburb']);
+			}
+			$params = $this->array_filter_recursive($this->params);
 		}
+
+		//print "<pre>"; print_r($params); print "</pre>"; die();
 
 		// Add Source fields
 		if($this->sourceFields){
@@ -440,10 +451,12 @@ Class Gmv
 		// Set sort field
 		if($this->sortBy){
 			$params["sortFields"] = [
-				"field" => $this->sortBy,
-				"desc"  => true // @todo
+				"field" => key($this->sortBy),
+				"desc"  => current($this->sortBy)
 			];
 		}
+
+		print "<pre>"; print_r($params); print "</pre>";
 
 		// Build array for client
 		$clientDataArray = [
@@ -569,6 +582,21 @@ Class Gmv
 		// Get response
 		return $finalOutput;
 	}
+
+	/**
+	 * Fitler an array recursivley
+	 *
+	 * @param array $input Array to filter
+	 */
+	private function array_filter_recursive($input) 
+  { 
+    foreach ($input as &$value) {
+      if (is_array($value)){
+        $value = $this->array_filter_recursive($value); 
+      } 
+    } 
+    return array_filter($input); 
+  } 
 
 	/**
 	 * Log something

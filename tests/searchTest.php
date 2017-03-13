@@ -2,75 +2,56 @@
 
 use PHPUnit\Framework\TestCase;
 
-class baseTest extends TestCase
+class searchTest extends TestCase
 {
-  public function testGetAggregates()
-  {
-    $config['key'] = getenv('KEY');
+	public function testSortOrder()
+	{
+		$config['key'] = getenv('KEY');
 
-    $g = CodeChap\Gmv::instance($config);
-    $r = $g->getAggregates();
+  	// Search Object
+  	$search = (object)[
+			'rentals'   => true,
+			'provinces' => 'KwaZulu-Natal',
+		];
 
-    $this->assertObjectHasAttribute('types', $r);
-    $this->assertObjectHasAttribute('provinces', $r);
-  }
-  
-  public function testGetSuburbsOf()
-  {
-    $config['key'] = getenv('KEY');
+		// Search for property
+    $g = CodeChap\Gmaven\Gmv::instance($config);
+    $r = $g->search($search, 1, 10, 'basic.gla', true);
 
-    $g = CodeChap\Gmv::instance($config);
-    $r = $g->getSuburbsOf('KwaZulu-Natal');
+    //print "<pre>"; print_r($r); print "</pre>"; die();
 
-    $this->assertObjectHasAttribute('suburbs', $r);
-    $this->assertContains('Pinetown', $r->suburbs);
-  }
+    // Same first id?
+    $this->assertEquals($firstId, $secondId);
+	}
 
-  public function testSearch()
+	/*
+  public function testConsistancy()
   {
   	$config['key'] = getenv('KEY');
 
   	// Search Object
   	$search = (object)[
-			'rentals'   => true,
-			'sales' 		=> false,
+			//'rentals'   => false,
+			'sales' 		=> true,
 			'types' 		=> false,
 			'provinces' => 'Gauteng',
-			'suburbs' 	=> 'Centurion',
+			//'suburbs' 	=> 'Centurion',
 			'cities' 		=> false,
 			'size' 			=> false,
 		];
 
 		// Search for property
-    $g = CodeChap\Gmv::instance($config);
+    $g = CodeChap\Gmaven\Gmv::instance($config);
     $r = $g->search($search);
-    $this->assertObjectHasAttribute('results', $r);
-
-    // Pull property details
-    $r = $g->property($r->results[0]->id);
-    $this->assertObjectHasAttribute('result', $r);
-  }
-  
-  public function testFeatured()
-  {
-  	$config['key'] = getenv('KEY');
+    $firstId = $r->results[0]->id;
 
 		// Search for property
-    $g = CodeChap\Gmv::instance($config);
-    $r = $g->featured();
+    $g = CodeChap\Gmaven\Gmv::instance($config);
+    $r = $g->search($search);
+    $secondId = $r->results[0]->id;
 
-    $this->assertObjectHasAttribute('results', $r);
+    // Same first id?
+    $this->assertEquals($firstId, $secondId);
   }
-
-  public function testUserResponsibility()
-  {
-    $config['key'] = getenv('KEY');
-
-    // Search for property
-    $g = CodeChap\Gmv::instance($config);
-    $r = $g->users("511b91a6-b8e0-43a3-951c-688c9ad4cd01");
-
-    $this->assertObjectHasAttribute('result', $r);
-  }
-
+  */
 }

@@ -456,7 +456,7 @@ Class Gmv
 			];
 		}
 
-		print "<pre>"; print_r($params); print "</pre>";
+		//print "<pre>"; print_r($params); print "</pre>";
 
 		// Build array for client
 		$clientDataArray = [

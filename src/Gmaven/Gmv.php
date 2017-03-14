@@ -178,12 +178,15 @@ Class Gmv
 		// Set source fields
 		$this->sourceFields = 'Basic';
 
-		// Set request body
+		/**
+		 * Set request body
+		 * Values that are false are removed from this array, if you want to send false to Gmaven is must be set as a string here.
+		 */
 		$this->params = [
 			"query" => array_filter(
 				[
 			    "vacancy.currentVacantArea" 		=> ! empty($search->rentals) ?   ["\$gte" => 1]                 : false, // Rentals
-			    "basic.forSale" 								=> ! empty($search->sales) ?     ["\$eq" => true]               : false , // Sales
+			    "basic.forSale" 								=> ! empty($search->sales) ?     ["\$eq" => true]               : ["\$in" => ["\$null", 'false']], // Sales
 			    "basic.primaryCategory" 				=> ! empty($search->types) ?     ["\$in" => $search->types]     : false, // Types
 			    "basic.province"								=> ! empty($search->provinces) ? ["\$in" => $search->provinces] : false, // Provinces
 			    "basic.suburb"  								=> ! empty($search->suburbs) ?   ["\$in" => $search->suburbs]   : false, // Suburbs

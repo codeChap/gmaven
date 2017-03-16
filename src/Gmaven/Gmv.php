@@ -24,6 +24,11 @@ Class Gmv
 	private $params = false;
 
 	/**
+	 * Holds the team members
+	 */
+	private $team = false;
+
+	/**
 	 * Source fields to parse to Gmaven
 	 */
 	private $sourceFields = false;
@@ -185,15 +190,15 @@ Class Gmv
 		$this->params = [
 			"query" => array_filter(
 				[
-			    "vacancy.currentVacantArea" 		=> ! empty($search->rentals) ?   ["\$gte" => 1]                 : false, // Rentals
-			    "basic.forSale" 								=> ! empty($search->sales) ?     ["\$eq" => true]               : ["\$in" => ["\$null", 'false']], // Sales
-			    "basic.primaryCategory" 				=> ! empty($search->types) ?     ["\$in" => $search->types]     : false, // Types
-			    "basic.province"								=> ! empty($search->provinces) ? ["\$in" => $search->provinces] : false, // Provinces
-			    "basic.suburb"  								=> ! empty($search->suburbs) ?   ["\$in" => $search->suburbs]   : false, // Suburbs
-			    "basic.city" 										=> ! empty($search->cities) ?    ["\$in" => $search->cities]    : false, // Cities
-			    "sales.askingPrice" 						=> ! empty($search->sales) ?     ["\$notNull" => "\$notNull"]   : false, // Asking price when for sale
-			    "vacancy.weightedAskingRental" 	=> empty($search->sales) ?       ["\$notNull" => "\$notNull"]   : false, // Asking price when for rent
-			    "isArchived"										=> array("\$null" 	=> true), // Dont show archived
+			    "vacancy.currentVacantArea" 		=> ! empty($search->rentals) ?   ["\$gte" => 1]                                     : false, // Rentals
+			    "basic.forSale" 								=> ! empty($search->sales) ?     ["\$eq" => true]                                   : ["\$in" => ["\$null", 'false']], // Sales
+			    "basic.primaryCategory" 				=> ! empty($search->types) ?     ["\$in" => $search->types, "\$notNull" => 'true']  : false, // Types
+			    "basic.province"								=> ! empty($search->provinces) ? ["\$in" => $search->provinces]                     : false, // Provinces
+			    "basic.suburb"  								=> ! empty($search->suburbs) ?   ["\$in" => $search->suburbs]                       : false, // Suburbs
+			    "basic.city" 										=> ! empty($search->cities) ?    ["\$in" => $search->cities]                        : false, // Cities
+			    "sales.askingPrice" 						=> ! empty($search->sales) ?     ["\$notNull" => 'true']                            : false, // Asking price when for sale
+			    "vacancy.weightedAskingRental" 	=> empty($search->sales) ?       ["\$notNull" => 'true']                            : false, // Asking price when for rent
+			    "isArchived"										=> array("\$null" 	=> true), // Dont show archived properties
 		    ]
 		  )
     ];
@@ -201,13 +206,13 @@ Class Gmv
    	// Append Size of property
    	if(isset($search->size[0])){
 			if($search->size[0] > 0){
-				$this->params['query']['basic.gla'] = array("\$gte" => $search->size[0]);
+				$this->params['query']['basic.gla']["\$gte"] = $search->size[0];
 			}
 		}
 
 		if(isset($search->size[0])){
 			if($search->size[1] > 0){
-				$this->params['query']['basic.gla'] = array("\$lte" => $search->size[1]);
+				$this->params['query']['basic.gla']["\$lte"] = $search->size[1];
 			}
 		}
 
@@ -263,7 +268,7 @@ Class Gmv
 		// Set request body
 		$this->params = [
 			"query" => array_filter([
-					"id" => array("\$eq" => $pid)
+					"id" => ["\$eq" => $pid]
 		  	]
 		  )
     ];
@@ -285,25 +290,86 @@ Class Gmv
 			$result->images = [];
 		}
 
-		// Get agents responsible
-		//$result->agent = $this->users($result->id);
-
   	// Done
   	return (object) ['result' => $result];
 	}
 
 	/**
-	 * 
+	 * Get current team of users
 	 */
-	public function users($pid)
+	public function getTeam()
 	{
-		// Set method and endpoint
-		$this->method = "GET";
-		$this->endpoint = "data/entity/property/".$pid."/responsibility";
-		$result = $this->execute();
+		if($this->team == false){
+			
+			// Set method and endpoint
+			$this->method = "GET";
+			$this->endpoint = "cre/user/team/current/user";
+			$this->sourceFields = false;
+			$this->params = false;
+			$this->page = false;
+			$this->size = false;
+
+			// Set team
+			$this->team = (object) $this->execute();
+		}
+		
+		// Done
+		return $this->team;
+	}
+
+	/**
+	 * Find the broker of the team
+	 *
+	 * @param Int   $pid  The property id
+	 *
+	 */
+	public function getBrokers($pid)
+	{
+		// Variable to return
+		$brokers = [];
+
+		// Get the team
+		$team = $this->getTeam();
+
+		// Check that we have something to search against
+		if(count($team)){
+
+			// Set method and endpoint
+			$this->method = "GET";
+			$this->endpoint = "data/entity/property/".$pid."/responsibility";
+			$result = $this->execute();
+
+			// Match up
+			if(count($result->list)){
+				foreach($result->list as $l){
+					foreach($team as $member){
+						if($l->userDomainKey == $member->_id){
+							$member->responsibility = $l->responsibility;
+							$brokers[] = $member;
+						}
+					}
+				}
+			}
+
+			// Format the phone numbers
+			if(count($brokers)){
+				foreach($brokers as $k => $b){
+					
+					if( ! empty($b->cell)){
+						$cell = (substr($b->cell, 0, 1) == 0) ? $b->cell : '0'.$b->cell;
+						$brokers[$k]->cell = preg_replace('~.*(\d{3})[^\d]{0,7}(\d{3})[^\d]{0,7}(\d{4}).*~', '($1) $2-$3', $cell);
+					}
+					
+					if( ! empty($b->tel)){
+						$tel = (substr($b->tel, 0, 1) == 0) ? $b->tel : '0'.$b->tel;
+						$brokers[$k]->tel = preg_replace('~.*(\d{3})[^\d]{0,7}(\d{3})[^\d]{0,7}(\d{4}).*~', '($1) $2-$3', $tel);
+					}
+				}
+			}
+		}
 
 		// Done
-		return (object) ['result' => $result];
+		return $brokers;
 	}
 
 	/**
@@ -413,10 +479,6 @@ Class Gmv
 
 		// Add Query
 		if($this->params){
-
-			if(isset($this->params['query']['basic.suburb'])){
-				//$this->params['query']['basic.suburb'] = $this->array_filter_recursive($this->params['query']['basic.suburb']);
-			}
 			$params = $this->array_filter_recursive($this->params);
 		}
 
@@ -459,7 +521,7 @@ Class Gmv
 			];
 		}
 
-		//print "<pre>"; print_r($params); print "</pre>";
+		//print "<pre>"; print_r($params); print "</pre>"; die();
 
 		// Build array for client
 		$clientDataArray = [

@@ -61,16 +61,4 @@ class baseTest extends TestCase
 
     $this->assertObjectHasAttribute('results', $r);
   }
-
-  public function testUserResponsibility()
-  {
-    $config['key'] = getenv('KEY');
-
-    // Search for property
-    $g = CodeChap\Gmaven\Gmv::instance($config);
-    $r = $g->users("511b91a6-b8e0-43a3-951c-688c9ad4cd01");
-
-    $this->assertObjectHasAttribute('result', $r);
-  }
-
 }

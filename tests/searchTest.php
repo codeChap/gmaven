@@ -4,6 +4,29 @@ use PHPUnit\Framework\TestCase;
 
 class searchTest extends TestCase
 {
+  public function testFeaturedProperties()
+  {
+    // Config
+    $config['key'] = getenv('KEY');
+
+    // Criteria
+    $province        = 'Gauteng';
+    $suburb          = 'Centurion CBD';
+    $primaryCategory = ['Office', 'Industrial'];
+
+    // Search Object
+    $search = (object)[
+      'rentals'   => true,
+      'provinces' => $province,
+      'suburbs'   => $suburb,
+      'types'     => $primaryCategory,
+    ];
+
+    // Search for property
+    $g = CodeChap\Gmaven\Gmv::instance($config);
+    $r = $g->featured()->results[0];
+  }
+
 	public function testSearchability()
 	{
     // Config

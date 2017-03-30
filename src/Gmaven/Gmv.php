@@ -51,10 +51,10 @@ Class Gmv
 	/**
 	 * Default config settings
 	 */
-	private $config = array(
+	private $config = [
 		'url' => "https://www.gmaven.com/api/",
 		'key' => false
-	);
+	];
 
 	/** 
 	 * Sets up the Gmaven Object
@@ -95,18 +95,18 @@ Class Gmv
 		$this->endpoint = "data/default/property/aggregates";
 
 		// Set source fields
-		$this->sourceFields = array(
+		$this->sourceFields = [
 			"basic.primaryCategory",
 			"basic.province"
-		);
+		];
 
 		// Set request body
-		$this->params = array(
-			'aggregates' => array(
+		$this->params = [
+			'aggregates' => [
 				'basic.primaryCategory' => 1,
 				'basic.province' => 1
-			)
-		);
+			]
+		];
 
 		// Go
 		$result = $this->execute();
@@ -181,7 +181,7 @@ Class Gmv
 		$this->endpoint = "data/default/property/search";
 
 		// Set source fields
-		$this->sourceFields = 'Basic';
+		$this->sourceFields = "basic";
 
 		/**
 		 * Set request body
@@ -375,40 +375,58 @@ Class Gmv
 	/**
 	 * Pulls featured properties
 	 */
-	public function featured($page = 1, $size = 10)
+	public function featured($search = [], $page = 1, $size = 10, $sortBy = 'vacancy.weightedAskingRental', $desc = 'false')
 	{
+		// Use curl
+		$this->useCurl = true;
+
 		// Set method and endpoint
 		$this->method = "POST";
 		$this->endpoint = "data/default/property/search";
 
 		// Set source fields
-		$this->sourceFields = 'Basic';
+		$this->sourceFields = "Basic";
 
-		// Set request body
+		/**
+		 * Set request body
+		 * Values that are false are removed from this array, if you want to send false to Gmaven is must be set as a string here!
+		 */
 		$this->params = [
-			"query" => array_filter([
-			    "sales.askingPrice" 						=> ["\$notNull" => "\$notNull"], // Asking price when for sale
-			    //"vacancy.weightedAskingRental" 	=> ["\$notNull" => "\$notNull"], // Asking price when for rent
-			    "isArchived"										=> ["\$null" 	  => true], // Dont show archived
-			  ]
-		  ),
+			"query" => array_filter(
+				[
+			    //"basic.forSale" 								=> ["\$in" => ["\$null", 'false']],
+			    "vacancy.weightedAskingRental" 	=> ["\$notNull" => 'true'],
+			    "isArchived"										=> ["\$null" 	=> 'true']
+		    ]
+		  )
     ];
+
+   	// Append Size of property
+   	if(isset($search->size[0])){
+			if($search->size[0] > 0){
+				$this->params['query']['basic.gla']["\$gte"] = $search->size[0];
+			}
+		}
+
+		if(isset($search->size[0])){
+			if($search->size[1] > 0){
+				$this->params['query']['basic.gla']["\$lte"] = $search->size[1];
+			}
+		}
 
 		// Set page and results per page
 		$this->page = $page;
 		$this->size = $size;
 
 		// Set sort field
-		$this->sortBy = ["sales.askingPrice" => false];
+		if($sortBy){
+			$this->sortBy = [$sortBy => $desc];
+		}
 
 		// Go 
 		$result = $this->execute();
 
-		// Reset 
-		$this->sourceFields = false;
-		$this->query = false;
-		$this->page = false;
-		$this->size = 1;
+		//print "<pre>"; print_r($result); print "</pre>"; die();
 
 		// Get the first image
 		if(count($result)){
@@ -443,12 +461,12 @@ Class Gmv
 		$this->endpoint = "data/content/entity/property/search";
 
 		// Set request body
-		$this->params = array(
+		$this->params = [
 			'entityDomainKeys' 	=> [$pid],
 			'contentCategory' 	=> 'Image',
 	  	'metadata' 					=> array('Rating' => $rating),
 	  	'limit' 						=> $limit
-		);
+		];
 
 		// Go
 		$result = $this->execute();
@@ -482,8 +500,6 @@ Class Gmv
 			$params = $this->array_filter_recursive($this->params);
 		}
 
-		//print "<pre>"; print_r($params); print "</pre>"; die();
-
 		// Add Source fields
 		if($this->sourceFields){
 			if(is_array($this->sourceFields)){
@@ -515,13 +531,13 @@ Class Gmv
 
 		// Set sort field
 		if($this->sortBy){
-			$params["sortFields"] = [
+			$params["sortFields"] = [[
 				"field" => key($this->sortBy),
-				"desc"  => current($this->sortBy)
-			];
+				"desc"  => (current($this->sortBy)) ? true : false
+			]];
 		}
 
-		//print "<pre>"; print_r($params); print "</pre>"; die();
+		//print json_encode($params, JSON_PRETTY_PRINT); die();
 
 		// Build array for client
 		$clientDataArray = [
@@ -595,6 +611,10 @@ Class Gmv
 				
 				// Decode Json output
 				case 'application/json; charset=utf-8' :
+
+					//print json_encode(json_decode($response->getBody()->getContents()), JSON_PRETTY_PRINT); die();
+
+					// Done
 					$finalOutput = json_decode($response->getBody()->getContents(), false);
 				break;
 

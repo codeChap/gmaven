@@ -105,7 +105,8 @@ Class Gmv
 			'aggregates' => [
 				'basic.primaryCategory' => 1,
 				'basic.province'        => 1
-			]
+			],
+			'size' => -1
 		];
 
 		// Go

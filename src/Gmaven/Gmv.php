@@ -386,7 +386,7 @@ Class Gmv
 		$this->endpoint = "data/default/property/search";
 
 		// Set source fields
-		$this->sourceFields = "Basic";
+		$this->sourceFields = "basic";
 
 		/**
 		 * Set request body
@@ -507,10 +507,11 @@ Class Gmv
 				$fields = $this->sourceFields;
 			}
 			else if(is_string($this->sourceFields)){
-				if(file_exists(__DIR__.'/Sourcefields/'.$this->sourceFields.'.php')){
-	  			$fields = include(__DIR__.'/Sourcefields/'.$this->sourceFields.'.php');
+				$sourceFieldFileName = ucFirst(strtolower($this->sourceFields));
+				if(file_exists(__DIR__.'/Sourcefields/'.$sourceFieldFileName.'.php')){
+	  			$fields = include(__DIR__.'/Sourcefields/'.$sourceFieldFileName.'.php');
 	  		}else{
-	  			throw new \Exception("SourceFields file not found");
+	  			throw new \Exception("SourceFields file (".$sourceFieldFileName.".php) not found");
 	  		} 
 			}
 			$params['sourceFields'] = $fields;

@@ -104,7 +104,7 @@ Class Gmv
 		$this->params = [
 			'aggregates' => [
 				'basic.primaryCategory' => 1,
-				'basic.province' => 1
+				'basic.province'        => 1
 			]
 		];
 

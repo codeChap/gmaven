@@ -199,7 +199,7 @@ Class Gmv
 			    "basic.city" 										=> ! empty($search->cities) ?    ["\$in" => $search->cities]                        : false, // Cities
 			    "sales.askingPrice" 						=> ! empty($search->sales) ?     ["\$notNull" => 'true']                            : false, // Asking price when for sale
 			    "vacancy.weightedAskingRental" 	=> empty($search->sales) ?       ["\$notNull" => 'true']                            : false, // Asking price when for rent
-			    "isArchived"										=> array("\$null" 	=> true), // Dont show archived properties
+			    "isArchived"										=> ["\$null" 	=> true], // Dont show archived properties
 		    ]
 		  )
     ];
@@ -207,14 +207,20 @@ Class Gmv
    	// Append Size of property
    	if(isset($search->size[0])){
 			if($search->size[0] > 0){
-				$this->params['query']['basic.gla']["\$gte"] = $search->size[0];
+				$this->params['query']['basic.gla']["\$gte"]  = $search->size[0];
+				//$this->params['query']['basic.gla']["\$in"]  = $search->size[0];
 			}
+		}else{
+			
 		}
 
 		if(isset($search->size[0])){
 			if($search->size[1] > 0){
-				$this->params['query']['basic.gla']["\$lte"] = $search->size[1];
+				$this->params['query']['basic.gla']["\$lte"]  = $search->size[1];
+				//$this->params['query']['basic.gla']["\$in"]  = $search->size[1];
 			}
+		}else{
+			
 		}
 
 		// Set page and results per page

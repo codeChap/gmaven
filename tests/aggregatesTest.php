@@ -20,9 +20,9 @@ class baseTest extends TestCase
     $config['key'] = getenv('KEY');
 
     $g = CodeChap\Gmaven\Gmv::instance($config);
-    $r = $g->getSuburbsOf('KwaZulu-Natal');
+    $r = $g->getSuburbsOf('Western Cape');
 
     $this->assertObjectHasAttribute('suburbs', $r);
-    $this->assertContains('Pinetown', $r->suburbs);
+    $this->assertContains('Greenpoint', $r->suburbs);
   }
 }

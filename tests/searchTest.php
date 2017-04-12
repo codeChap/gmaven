@@ -4,6 +4,39 @@ use PHPUnit\Framework\TestCase;
 
 class searchTest extends TestCase
 {
+  public function testWideRange()
+  {
+    // Config
+    $config['key'] = getenv('KEY');
+
+    // Criteria
+    $province        = 'Gauteng';
+    $suburb          = ['Sandton'];
+    $min             = 100;
+    $max             = 50000;
+    $primaryCategory = ['Office'];
+
+    // Search Object
+    $search = (object)[
+      'provinces' => $province,
+      'suburbs'   => $suburb,
+      'types'     => $primaryCategory,
+      'size'      => [$min, $max]
+    ];
+
+    // Search for property
+    $g = CodeChap\Gmaven\Gmv::instance($config);
+    $r = $g->search($search, 1, 30);
+
+    print "<pre>"; print_r($r); print "</pre>"; die();
+
+    // Test entries
+    foreach($r->results as $result){
+      $this->assertGreaterThanOrEqual($min, $result->basic->gla);
+      $this->assertLessThanOrEqual($max, $result->basic->gla);
+    }
+  }
+
   public function testFeaturedProperties()
   {
     // Config
@@ -67,7 +100,6 @@ class searchTest extends TestCase
 
     // Criteria
     $province = 'Gauteng';
-    $suburb   = 'Centurion CBD';
     $min      = 1000;
     $max      = 500;
 

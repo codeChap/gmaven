@@ -488,6 +488,44 @@ Class Gmv
 	}
 
 	/**
+	 * @TODO
+	 */
+	public function getUnitsof($pid = 'ce2b362f-64f7-4797-b039-8a3be148f51b')
+	{
+		$r = `
+		curl -H "gmaven.apiKey:PropData:5abd5f3137b54f8fbe600d9b958784a9zpded3d3462baf493bb9516a0a9476679a" \
+		-H "Content-Type:application/json" \
+		-d '{"query":{"propertyId":{"\$eq":"16c751e3-2df9-40c5-903e-f6132172f1ce"}},"sourceFields":["id", "unitDetails.gla", "unitDetails.customReferenceId", "unitDetails.primaryCategory", "vacancy.unitDetails.gmr", "vacancy.marketing.availableType"]}' \
+		-X POST https://www.gmaven.cooso.devm/api/data/default/propertyUnit/search
+		`;
+		$r = json_decode($r);
+		print json_encode($r, JSON_PRETTY_PRINT); die();
+
+		/*
+		$pid = 'c8d07181-80b5-4216-a24c-59c14494eea8';
+
+		$this->method = "GET";
+
+		// Set endpoint of images
+		$this->endpoint = "data/custom/property/".$pid;
+
+		// Set source fields
+		$this->sourceFields = "all";
+
+		// Set request body
+		//$this->params = [
+			//'entityDomainKeys' 	=> [$pid],
+			//'contentCategory' 	=> 'propertyUnit'
+		//];
+
+		// Go
+		$result = $this->execute();
+
+		return $result;
+		*/
+	}
+
+	/**
 	 * Execute the query using Guzzle
 	 *
 	 * @return  mixed
@@ -528,12 +566,6 @@ Class Gmv
 			$params['page'] = ["number" => $this->page, "size" => $this->size];
 		}
 
-		// Log perams request @todo
-		if(php_sapi_name() === 'cli' ){
-			//print PHP_EOL . "ENDPOINT:" . $this->endpoint . PHP_EOL . ' Sending ';
-			//print_r($params);
-		}
-
 		// Sort and then add sort by
 		ksort($params);
 
@@ -544,8 +576,6 @@ Class Gmv
 				"desc"  => (current($this->sortBy)) ? true : false
 			]];
 		}
-
-		//print json_encode($params, JSON_PRETTY_PRINT); die();
 
 		// Build array for client
 		$clientDataArray = [
@@ -562,6 +592,14 @@ Class Gmv
 
 		// Set client
 		$client = new \GuzzleHttp\Client($clientDataArray);
+
+		// Log perams request @todo
+		if(php_sapi_name() === 'cli' ){
+			//print 'METHOD:' . $this->method . PHP_EOL;
+			//print 'URL:' . $this->config['url'] . $this->endpoint . PHP_EOL;
+			//print json_encode($params, JSON_PRETTY_PRINT);
+			//die();
+		}
 
 		// Set response
 		try{

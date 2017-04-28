@@ -4,6 +4,25 @@ use PHPUnit\Framework\TestCase;
 
 class searchTest extends TestCase
 {
+  public function testUnits()
+  {
+    // Config
+    $config['key'] = getenv('KEY');
+
+    // Search for property
+    $g = CodeChap\Gmaven\Gmv::instance($config);
+    $r = $g->getUnitsof();
+
+    print "<pre>"; print_r($r); print "</pre>"; die();
+
+    // Attempt to find an agent
+    foreach($r->results as $result){
+      $p = $g->property($result->id);
+    }
+    
+  }
+
+  /*
 	public function testProperty()
 	{
     // Config
@@ -19,41 +38,13 @@ class searchTest extends TestCase
     $g = CodeChap\Gmaven\Gmv::instance($config);
     $r = $g->search($search, 1, 1);
 
+    //print "<pre>"; print_r($r); print "</pre>"; die();
+
     // Attempt to find an agent
     foreach($r->results as $result){
       $p = $g->property($result->id);
     }
-    
-
-    /*
-
-    // Criteria
-    $province        = 'Gauteng';
-    $suburb          = 'Centurion CBD';
-
-  	// Search Object
-  	$search = (object)[
-			'rentals'   => true,
-			'provinces' => $province,
-      'suburbs'   => $suburb
-		];
-
-    // Search for property
-    $g = CodeChap\Gmaven\Gmv::instance($config);
-    $r = $g->search($search, 1, 1);
-
-    // Test entries
-    foreach($r->results as $result){
-      
-      $p = CodeChap\Gmaven\Gmv::instance($config);
-      $property = $p->property($result->id);
-
-      print "<pre>"; print_r($property); print "</pre>";
-
-
-
-    }
-
-    */
   }
+  */
 }
+?>

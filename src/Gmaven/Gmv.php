@@ -490,8 +490,9 @@ Class Gmv
 	/**
 	 * @TODO
 	 */
-	public function getUnitsof($pid = 'ce2b362f-64f7-4797-b039-8a3be148f51b')
+	public function getUnitsof($pid)
 	{
+		/* EXAMPLE
 		$r = `
 		curl -H "gmaven.apiKey:PropData:5abd5f3137b54f8fbe600d9b958784a9zpded3d3462baf493bb9516a0a9476679a" \
 		-H "Content-Type:application/json" \
@@ -500,29 +501,30 @@ Class Gmv
 		`;
 		$r = json_decode($r);
 		print json_encode($r, JSON_PRETTY_PRINT); die();
+		*/
 
-		/*
-		$pid = 'c8d07181-80b5-4216-a24c-59c14494eea8';
-
-		$this->method = "GET";
+		$this->method = "POST";
 
 		// Set endpoint of images
-		$this->endpoint = "data/custom/property/".$pid;
+		$this->endpoint = "data/custom/propertyUnit/search";
 
 		// Set source fields
-		$this->sourceFields = "all";
+		$this->sourceFields = ["id", "unitDetails.gla", "unitDetails.customReferenceId", "unitDetails.primaryCategory", "vacancy.unitDetails.gmr", "vacancy.marketing.availableType"];
 
-		// Set request body
-		//$this->params = [
-			//'entityDomainKeys' 	=> [$pid],
-			//'contentCategory' 	=> 'propertyUnit'
-		//];
+		// Query
+		$this->params = [
+			"query" => array_filter(
+				[
+			    "propertyId" 	=> ["\$eq" => $pid]
+		    ]
+		 )
+		];
 
 		// Go
 		$result = $this->execute();
 
+		// Done
 		return $result;
-		*/
 	}
 
 	/**

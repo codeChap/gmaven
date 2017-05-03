@@ -28,8 +28,6 @@ class searchTest extends TestCase
     $g = CodeChap\Gmaven\Gmv::instance($config);
     $r = $g->search($search, 1, 30);
 
-    print "<pre>"; print_r($r); print "</pre>"; die();
-
     // Test entries
     foreach($r->results as $result){
       $this->assertGreaterThanOrEqual($min, $result->basic->gla);

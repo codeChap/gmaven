@@ -12,8 +12,6 @@ class searchTest extends TestCase
     $g = CodeChap\Gmaven\Gmv::instance($config);
     $r = $g->users();
 
-    print "<pre>"; print_r($r); print "</pre>"; die();
-
     $this->assertObjectHasAttribute('result', $r);
   }
 }

@@ -1,1 +1,2 @@
 26 April 2017 12:13:52: https://www.gmaven.com/api/data/custom/property/c8d07181-80b5-4216-a24c-59c14494eea8: 502 - Gmaven error
+03 May 2017 01:46:48: https://www.gmaven.com/api/data/default/property/search: 400 - Gmaven client endpoint error: Invalid Source Field Path 'unitDetails.gla' for Entity 'property'

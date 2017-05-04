@@ -488,11 +488,8 @@ Class Gmv
 	}
 
 	/**
-	 * @TODO
-	 */
-	public function getUnitsof($pid)
-	{
-		/* EXAMPLE
+	 * Pull available space for a single property
+	 * BASIC EXAMPLE
 		$r = `
 		curl -H "gmaven.apiKey:PropData:5abd5f3137b54f8fbe600d9b958784a9zpded3d3462baf493bb9516a0a9476679a" \
 		-H "Content-Type:application/json" \
@@ -501,27 +498,34 @@ Class Gmv
 		`;
 		$r = json_decode($r);
 		print json_encode($r, JSON_PRETTY_PRINT); die();
-		*/
-
+	 */
+	public function getUnitsof($pid)
+	{
+		// Set method
 		$this->method = "POST";
 
 		// Set endpoint of images
 		$this->endpoint = "data/custom/propertyUnit/search";
 
 		// Set source fields
-		$this->sourceFields = ["id", "unitDetails.gla", "unitDetails.customReferenceId", "unitDetails.primaryCategory", "vacancy.unitDetails.gmr", "vacancy.marketing.availableType"];
+		//$this->sourceFields = ["id", "unitDetails.gla", "unitDetails.customReferenceId", "unitDetails.primaryCategory", "vacancy.unitDetails.gmr", "vacancy.marketing.availableType"];
+		$this->sourceFields = "unit";
 
 		// Query
 		$this->params = [
 			"query" => array_filter(
 				[
-			    "propertyId" 	=> ["\$eq" => $pid]
+			    "propertyId" 	     => ["\$eq"   => $pid],
+			    //"vacancy.forLease" => ["\$eq"   => 'true'],
+			   	"isArchived"	     => ["\$null" => 'true']
 		    ]
 		 )
 		];
 
 		// Go
 		$result = $this->execute();
+
+		//print "<pre>"; print_r($result); print "</pre>"; die();
 
 		// Done
 		return $result;

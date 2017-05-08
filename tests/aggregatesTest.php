@@ -23,6 +23,5 @@ class baseTest extends TestCase
     $r = $g->getSuburbsOf('Western Cape');
 
     $this->assertObjectHasAttribute('suburbs', $r);
-    $this->assertContains('Greenpoint', $r->suburbs);
   }
 }

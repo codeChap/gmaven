@@ -182,7 +182,7 @@ Class Gmv
 		$this->endpoint = "data/default/property/search";
 
 		// Set source fields
-		$this->sourceFields = "basic";
+		$this->sourceFields = "Compiled";
 
 		/**
 		 * Set request body
@@ -198,8 +198,7 @@ Class Gmv
 			    "basic.suburb"  								=> ! empty($search->suburbs) ?   ["\$in" => $search->suburbs]                       : false, // Suburbs
 			    "basic.city" 										=> ! empty($search->cities) ?    ["\$in" => $search->cities]                        : false, // Cities
 			    "sales.askingPrice" 						=> ! empty($search->sales) ?     ["\$notNull" => 'true']                            : false, // Asking price when for sale
-			    "vacancy.weightedAskingRental" 	=> empty($search->sales) ?       ["\$notNull" => 'true']                            : false, // Asking price when for rent
-			    "isArchived"										=> ["\$null" 	=> true], // Dont show archived properties
+			    "vacancy.weightedAskingRental" 	=> empty($search->sales) ?       ["\$notNull" => 'true']                            : false // Asking price when for rent
 		    ]
 		  )
     ];
@@ -270,7 +269,7 @@ Class Gmv
 		$this->endpoint = "data/default/property/search";
 
 		// Set source fields
-		$this->sourceFields = 'All';
+		$this->sourceFields = 'Compiled';
 
 		// Set request body
 		$this->params = [
@@ -392,7 +391,7 @@ Class Gmv
 		$this->endpoint = "data/default/property/search";
 
 		// Set source fields
-		$this->sourceFields = "basic";
+		$this->sourceFields = "Compiled";
 
 		/**
 		 * Set request body
@@ -433,8 +432,6 @@ Class Gmv
 		// Go 
 		$result = $this->execute();
 
-		//print "<pre>"; print_r($result); print "</pre>"; die();
-
 		// Get the first image
 		if(count($result)){
 			foreach($result->list as $k => $v){
@@ -471,7 +468,7 @@ Class Gmv
 		$this->params = [
 			'entityDomainKeys' 	=> [$pid],
 			'contentCategory' 	=> 'Image',
-	  	'metadata' 					=> array('Rating' => $rating),
+	  	'metadata' 					=> ['Rating' => $rating],
 	  	'limit' 						=> $limit
 		];
 
@@ -509,7 +506,7 @@ Class Gmv
 
 		// Set source fields
 		//$this->sourceFields = ["id", "unitDetails.gla", "unitDetails.customReferenceId", "unitDetails.primaryCategory", "vacancy.unitDetails.gmr", "vacancy.marketing.availableType"];
-		$this->sourceFields = "unit";
+		$this->sourceFields = "Unit";
 
 		// Query
 		$this->params = [

@@ -206,8 +206,7 @@ Class Gmv
    	// Append Size of property
    	if(isset($search->size[0])){
 			if($search->size[0] > 0){
-				$this->params['query']['basic.gla']["\$gte"]  = $search->size[0];
-				//$this->params['query']['basic.gla']["\$in"]  = $search->size[0];
+				$this->params['query']['vacancy.currentVacantArea']["\$gte"]  = $search->size[0];
 			}
 		}else{
 			
@@ -215,8 +214,7 @@ Class Gmv
 
 		if(isset($search->size[0])){
 			if($search->size[1] > 0){
-				$this->params['query']['basic.gla']["\$lte"]  = $search->size[1];
-				//$this->params['query']['basic.gla']["\$in"]  = $search->size[1];
+				$this->params['query']['vacancy.currentVacantArea']["\$lte"]  = $search->size[1];
 			}
 		}else{
 			

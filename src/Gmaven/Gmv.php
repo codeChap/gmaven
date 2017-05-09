@@ -234,6 +234,8 @@ Class Gmv
 		// Go 
 		$result = $this->execute();
 
+		//print "<pre>"; print_r($result); print "</pre>"; die();
+
 		// Reset 
 		$this->sourceFields = false;
 		$this->query = false;
@@ -514,7 +516,7 @@ Class Gmv
 				[
 			    "propertyId" 	     => ["\$eq"   => $pid],
 			    //"vacancy.forLease" => ["\$eq"   => 'true'],
-			   	"isArchived"	     => ["\$null" => 'true']
+			   	"isArchived"	     => ["\$in" => ["\$null", "false"]]
 		    ]
 		 )
 		];

@@ -363,12 +363,12 @@ Class Gmv
 					
 					if( ! empty($b->cell)){
 						$cell = (substr($b->cell, 0, 1) == 0) ? $b->cell : '0'.$b->cell;
-						$brokers[$k]->cell = preg_replace('~.*(\d{3})[^\d]{0,7}(\d{3})[^\d]{0,7}(\d{4}).*~', '($1) $2-$3', $cell);
+						$brokers[$k]->cell = $b->cell;
 					}
 					
 					if( ! empty($b->tel)){
 						$tel = (substr($b->tel, 0, 1) == 0) ? $b->tel : '0'.$b->tel;
-						$brokers[$k]->tel = preg_replace('~.*(\d{3})[^\d]{0,7}(\d{3})[^\d]{0,7}(\d{4}).*~', '($1) $2-$3', $tel);
+						$brokers[$k]->tel = $b->tel;
 					}
 				}
 			}

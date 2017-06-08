@@ -19,12 +19,11 @@
     ],
     "minimum-stability": "dev",
     "require": {
-        "php": ">=5.6.10",
-        "guzzlehttp/guzzle": "~6.0"
+        "php": ">=5.6.10"
     },
     "autoload": {
         "psr-4": {
-            "CodeChap\\": "src/"
+            "CodeChap\\Gmv\\": "src"
         }
     }
 }

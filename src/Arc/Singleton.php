@@ -49,11 +49,6 @@ abstract class Singleton
 	 */
 	protected function __construct($config = []) {
 
-    // Check for string
-    if(is_string($config)){
-      $config = \Config::load($config);
-    }
-
 		// Order of this addition is important, do not change this.
 		$this->config = $config + $this->config;
 	}

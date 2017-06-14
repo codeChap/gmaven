@@ -70,8 +70,6 @@ class Gmv extends Arc\Singleton
 			$b->tables();
 		}
 
-		$this->getSuburbs();
-
 		// Start fetching aggregates data
 		if(false){
 			$this->getCategories();
@@ -252,9 +250,15 @@ class Gmv extends Arc\Singleton
 	}
 
 	/**
-	 * Get all properties and re-insert them into the database 
+	 * Get all properties and re-insert them into the database
+	 *
+	 * Total results may differ from what you see in CRE, Gmaven apply filters to the API to ensure that no obviously "incomplete" 
+	 * properties are displayed (e.g. ones that're missing critical location or price information) which would account for this 
+	 * difference.
+	 *
+	 * @return Boolean
 	 */
-	private function getProperties($page = 1)
+	private function getProperties()
 	{
 		// Call Gmaven to get total properties
 		$r = $this->post('data/default/property/search', [
@@ -262,6 +266,8 @@ class Gmv extends Arc\Singleton
 			'page'	       => ['number' => 1, 'size' => 1]
 		]);
 		$t = $r->md->totalResults;
+
+		//print "<pre>"; print_r($r); print "</pre>"; die();
 
 		// Info
 		$this->cli->green('Fetching '.$t.' properties.');
@@ -355,6 +361,9 @@ class Gmv extends Arc\Singleton
 			// Update progress bar
 			$progress->current($i);
 		}
+
+		// Done
+		return true;
 	}
 
 	/**
@@ -590,10 +599,15 @@ class Gmv extends Arc\Singleton
 	 */
 	private function post($endPoint, $postFields = [])
 	{
+		// Clean array
+		$postFields = array_filter($postFields);
+
+		//print(json_encode($postFields, JSON_PRETTY_PRINT)); die();
+
 		// Set and filter post data
 		$clientDataArray = [
 			'base_uri' => 'https://www.gmaven.com/api/',
-			'json'     => array_filter($postFields)
+			'json'     => $postFields
 		];
 
 		// Go guzzle
@@ -666,6 +680,15 @@ class Gmv extends Arc\Singleton
 	private function handleError($e){
 		return false;
 	}
+
+
+
+
+
+
+
+
+
 
 	/**
 	 * Execute a call to Gmaven

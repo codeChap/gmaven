@@ -53,6 +53,39 @@ class Db extends Arc\Singleton
 	/**
 	 * Queries etc
 	 */
+	public function get($key = false)
+	{
+		try {
+
+	    // Prepare and fetch all
+			$p = $this->db->prepare($this->q);
+			$p->execute();
+			$r = $p->fetchAll();
+			
+			// Done
+			if(count($r)){
+				if($key){
+					$return = [];
+					foreach($r as $k => $v){
+						$return[] = $v[$key];
+					}
+					return $return;
+				}else{
+					return $r;
+				}
+			}
+			else{
+				return false;
+			}
+		}
+	  catch(\PDOException $e){
+	    throw new \Exception($e->getMessage());
+	  }
+	}
+
+	/**
+	 * Queries etc
+	 */
 	public function get_one($key, $default = 0)
 	{
 		try {

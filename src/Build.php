@@ -55,9 +55,10 @@ class Build extends Arc\Singleton
 			if( ! in_array($table, $r) ){
 				$q = "
 					CREATE TABLE `".$table."`(
-				   id	        INT(11) AUTO_INCREMENT PRIMARY KEY,
-				   suburb	    VARCHAR(90) NOT NULL,
-				   updated_at	INT(11) NOT NULL)
+				   id	          INT(11) AUTO_INCREMENT PRIMARY KEY,
+				   province_id	INT(11) NOT NULL,
+				   suburb	      VARCHAR(90) NOT NULL,
+				   updated_at	  INT(11) NOT NULL)
 				";
 				$db->exec($q);
 			}
@@ -81,6 +82,7 @@ class Build extends Arc\Singleton
 					CREATE TABLE `".$table."`(
 					 `id`	                  INT(11) AUTO_INCREMENT PRIMARY KEY,
 					 `did`	                INT(11) NOT NULL COMMENT 'Details ID',
+					 `bid`	                INT(11) DEFAULT 0 COMMENT 'Broker ID',
 					 `lon`	                DECIMAL(9,6) DEFAULT NULL,
 					 `lat`	                DECIMAL(9,6) DEFAULT NULL,
 					 `gla`	                INT(9) DEFAULT 0,
@@ -139,9 +141,29 @@ class Build extends Arc\Singleton
 			if( ! in_array($table, $r) ){
 				$q = "
 					CREATE TABLE `".$table."`(
-				   id INT( 11 ) AUTO_INCREMENT PRIMARY KEY,
-				   category VARCHAR( 250 ) NOT NULL,
-				   updated_at INT( 11 ) NOT NULL)
+				   `id` INT(11) AUTO_INCREMENT PRIMARY KEY,
+				   `entityDomainKey`	VARCHAR(90) NOT NULL,
+				   `contentDomainKey`	VARCHAR(90) NOT NULL,
+				   `rating`	          INT(2) DEFAULT 0,
+				   `updated_at`	      INT(11) NOT NULL,
+				   `gmv_updated`	    FLOAT(11,4) NOT NULL
+					)
+				";
+				$db->exec($q);
+			}
+
+			// Build properties table
+			$table = $pfx."gmaven_brokers";
+			if( ! in_array($table, $r) ){
+				$q = "
+					CREATE TABLE `".$table."`(
+				   `id` INT(11)	AUTO_INCREMENT PRIMARY KEY,
+				   `gmv_id`	    VARCHAR(90) NOT NULL,
+				   `name`	      VARCHAR(90) NOT NULL,
+				   `tel`	      VARCHAR(90),
+				   `email`	    VARCHAR(90),
+				   `updated_at`	INT(11) NOT NULL
+					)
 				";
 				$db->exec($q);
 			}

@@ -127,28 +127,6 @@ abstract class Singleton
     return $this;
   }
 
-  /**
-   * Get Helper
-   *
-   * @param   String  The class param to get
-   * @return  String|Array
-   */
-  public function get($key)
-  {
-    // Find the key if set
-    if(isset($this->$key)){
-      return $this->$key;
-    }
-
-    // Else make it part of the data array
-    else if(isset($this->data[$key])){
-      return $this->data[$key];
-    }
-
-    // Not set
-    return false;
-  }
-
 	// Prevent these functions
   protected function __clone() {}
   public function __wakeup(){throw new Exception("Cannot unserialize singleton");}

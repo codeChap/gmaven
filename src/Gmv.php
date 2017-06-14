@@ -33,12 +33,17 @@ class Gmv extends Arc\Singleton
 
 	public $cli = false;
 
+
+
+	public $client = false;
+	public $headers = [];
+
 	/**
 	 * Constructor
 	 */
 	public function __construct($config)
-	{
-		// Things we need set
+	{		
+		// Setup climate and record current time
 		$this->cli = new \League\CLImate\CLImate;
 		$this->time = time();
 
@@ -49,9 +54,9 @@ class Gmv extends Arc\Singleton
 	/**
 	 * Give info
 	 */
-	public function __desctruct()
+	public function __destruct()
 	{
-		$this->cli->green('Took ' . time() - $this->time . ' seconds');
+		$this->cli->green('Took ' . (time() - $this->time) . ' seconds');
 	}
 
 	/**
@@ -65,6 +70,8 @@ class Gmv extends Arc\Singleton
 			$b->tables();
 		}
 
+		$this->getSuburbs();
+
 		// Start fetching aggregates data
 		if(false){
 			$this->getCategories();
@@ -74,23 +81,23 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching property data
-		if(false){
-			$this->resetProperties();
+		if(true){
+			$this->getProperties();
 		}
 
 		// Start fetching unit data
 		if(false){
-			$this->resetUnits();
+			$this->getUnits();
 		}
 
 		// Start fetching images
-		if(true){
-			$this->resetImages();
+		if(false){
+			$this->getImages();
 		}
 
-		// Get updated properties
+		// Start fetching images
 		if(false){
-			$this->updateProperties();
+			$this->getBrokers();
 		}
 	}
 
@@ -99,20 +106,29 @@ class Gmv extends Arc\Singleton
 	 */
 	private function getCategories()
 	{
-		$this->endPoint = 'data/default/property/aggregates';
-		$this->post = true;
-		$this->size = -1;
-		$this->aggregates = [
-			'basic.primaryCategory' => 1
-		];
-		$data = $this->call();
-		$data = array_filter($data->aggregates->{'basic.primaryCategory$$distinct'});
+		// Info
+		$this->cli->green('Fetching categories');
+
+		// Call Gmaven
+		$r = $this->post('data/default/property/aggregates', [
+			'size' => -1,
+			'aggregates' => [
+				'basic.primaryCategory' => 1
+			]
+		]);
+
+		// Gather data
+		$data = array_filter($r->aggregates->{'basic.primaryCategory$$distinct'});
+
+		// Progress bar
+		$progress = $this->cli->progress()->total(count($data));
 
 		// Insert
 		$db = Db::forge($this->get_config());
 		$db->query("TRUNCATE TABLE `#gmaven_categories`")->exec();
-		foreach($data as $category){
-			$db->query("INSERT INTO `#gmaven_categories` (`category`, `updated_at`) VALUES('".$category."', ".$this->time.")")->exec();
+		foreach($data as $i => $category){
+			$db->query("INSERT INTO `#gmaven_categories` (`category`, `updated_at`) VALUES('".addslashes($category)."', ".$this->time.")")->exec();
+			$progress->current($i);
 		}
 	}
 
@@ -121,20 +137,29 @@ class Gmv extends Arc\Singleton
 	 */
 	private function getProvinces()
 	{
-		$this->endPoint = 'data/default/property/aggregates';
-		$this->post = true;
-		$this->size = -1;
-		$this->aggregates = [
-			'basic.province' => 1
-		];
-		$data = $this->call();
-		$data = array_filter($data->aggregates->{'basic.province$$distinct'});
+		// Info
+		$this->cli->green('Fetching provinces');
+
+		// Call Gmaven
+		$r = $this->post('data/default/property/aggregates', [
+			'size' => -1,
+			'aggregates' => [
+				'basic.province' => 1
+			]
+		]);
+
+		// Gather data
+		$data = array_filter($r->aggregates->{'basic.province$$distinct'});
+
+		// Progress bar
+		$progress = $this->cli->progress()->total(count($data));
 
 		// Insert
 		$db = Db::forge($this->get_config());
 		$db->query("TRUNCATE TABLE `#gmaven_provinces`")->exec();
-		foreach($data as $province){
-			$db->query("INSERT INTO `#gmaven_provinces` (`province`, `updated_at`) VALUES('".$province."', ".$this->time.")")->exec();
+		foreach($data as $i => $province){
+			$db->query("INSERT INTO `#gmaven_provinces` (`province`, `updated_at`) VALUES('".addslashes($province)."', ".$this->time.")")->exec();
+			$progress->current($i);
 		}
 	}
 
@@ -143,20 +168,55 @@ class Gmv extends Arc\Singleton
 	 */
 	private function getSuburbs()
 	{
-		$this->endPoint = 'data/default/property/aggregates';
-		$this->post = true;
-		$this->size = -1;
-		$this->aggregates = [
-			'basic.suburb' => 1
-		];
-		$data = $this->call();
-		$data = array_filter($data->aggregates->{'basic.suburb$$distinct'});
-
-		// Insert
+		// Database
 		$db = Db::forge($this->get_config());
+
+		// Clear out table
 		$db->query("TRUNCATE TABLE `#gmaven_suburbs`")->exec();
-		foreach($data as $suburb){
-			$db->query("INSERT INTO `#gmaven_suburbs` (`suburb`, `updated_at`) VALUES('".$suburb."', ".$this->time.")")->exec();
+
+		// We need a list of property ids
+		$provinces = $db->query("SELECT `id`, `province` FROM `#gmaven_provinces`")->get();
+
+		// Call Gmaven on each province
+		foreach($provinces as $p){
+
+			// Info
+			$this->cli->green('Fetching suburbs of ' . $p['province']);
+
+			// Call
+			$r = $this->post('data/default/property/aggregates', [
+				'size' => -1,
+				'query' => [
+					'basic.province' => [
+						'$in' => $p['province']
+					]
+				],
+				'aggregates' => [
+					'basic.suburb' => 1
+				]
+			]);
+		
+			// Gather data
+			$data = array_filter($r->aggregates->{'basic.suburb$$distinct'});
+
+			// Progress bar
+			$progress = $this->cli->progress()->total( count($data) );
+
+			// Insert
+			foreach($data as $i => $suburb){
+				$db->query("
+					INSERT INTO `#gmaven_suburbs`
+					(`suburb`, `province_id`, `updated_at`)
+					VALUES(
+						'".addslashes($suburb)."',
+						".$p['id'].",
+						".$this->time."
+					)
+				")->exec();
+				
+				// Update progress
+				$progress->current($i);
+			}
 		}
 	}
 
@@ -165,50 +225,73 @@ class Gmv extends Arc\Singleton
 	 */
 	private function getCities()
 	{
-		$this->endPoint = 'data/default/property/aggregates';
-		$this->post = true;
-		$this->size = -1;
-		$this->aggregates = [
-			'basic.city' => 1
-		];
-		$data = $this->call();
-		$data = array_filter($data->aggregates->{'basic.city$$distinct'});
+		// Info
+		$this->cli->green('Fetching cities');
+
+		// Call Gmaven
+		$r = $this->post('data/default/property/aggregates', [
+			'size' => -1,
+			'aggregates' => [
+				'basic.city' => 1
+			]
+		]);
+
+		// Gather data
+		$data = array_filter($r->aggregates->{'basic.city$$distinct'});
+
+		// Progress bar
+		$progress = $this->cli->progress()->total(count($data));
 
 		// Insert
 		$db = Db::forge($this->get_config());
 		$db->query("TRUNCATE TABLE `#gmaven_cities`")->exec();
-		foreach($data as $city){
-			$db->query("INSERT INTO `#gmaven_cities` (`city`, `updated_at`) VALUES('".$city."', ".$this->time.")")->exec();
+		foreach($data as $i => $city){
+			$db->query("INSERT INTO `#gmaven_cities` (`city`, `updated_at`) VALUES('".addslashes($city)."', ".$this->time.")")->exec();
+			$progress->current($i);
 		}
 	}
 
 	/**
 	 * Get all properties and re-insert them into the database 
 	 */
-	private function resetProperties($page = 1)
+	private function getProperties($page = 1)
 	{
-		// Get total pages first
-		$this->endPoint = 'data/default/property/search';
-		$this->post = true;
-		$this->sourceFields = ['id'];
-		$this->pageNumber = 1;
-		$this->pageSize = 1;
-		$r = $this->call();
+		// Call Gmaven to get total properties
+		$r = $this->post('data/default/property/search', [
+			'sourceFields' => ['id'],
+			'page'	       => ['number' => 1, 'size' => 1]
+		]);
 		$t = $r->md->totalResults;
 
 		// Info
-		$this->cli->green('Fetching '.$t.' properties and associated units.');
+		$this->cli->green('Fetching '.$t.' properties.');
 
 		// Now pull everything!
-		$this->sourceFields = include(__DIR__.'Fields'.DIRECTORY_SEPARATOR.'Properties.php');
-		$this->pageSize = $t;
-		$r = $this->call();
-
-		// Check
-		if(count($r) == 0){
-			$this->cli->error("Nothing from Gmaven...");
-			die();
-		}
+		$r = $this->post('data/default/property/search', [
+			'sourceFields' => [
+				'id',
+				'_updated',
+				'basic.name',
+				'basic.province',
+				'basic.suburb',
+				'basic.city',
+				'basic.displayAddress',
+				'basic.primaryCategory',
+				'basic.marketingBlurb',
+				'basic.forSale',
+				'basic.gla',
+				'basic.customReferenceId',
+				'office.amenities._key',
+				'office.amenities.exists',
+				'geo.lat',
+				'geo.lon',
+				'vacancy.currentVacantArea',
+				'vacancy.weightedAskingRental',
+				'sales.askingPrice',
+				'sales.valueM2'
+			],
+			'page' => ['number' => 1, 'size' => $t]
+		]);
 
 		// Progress bar
 		$progress = $this->cli->progress()->total($t);
@@ -222,6 +305,8 @@ class Gmv extends Arc\Singleton
 
 		// Loop over results
 		foreach($r->list as $i => $p){
+
+			//print "<pre>"; print_r($p); print "</pre>";
 
 			// Find province, city, suburb and category id
 			$catId	= $db->query("SELECT `id` FROM `#gmaven_categories` WHERE `category`	= '".(addslashes($p->basic->primaryCategory))."'")->get_one('id');
@@ -275,31 +360,35 @@ class Gmv extends Arc\Singleton
 	/**
 	 * 
 	 */
-	public function resetUnits()
+	public function getUnits()
 	{
-		// Get total pages first
-		$this->endPoint = 'data/custom/propertyUnit/search';
-		$this->post = true;
-		$this->sourceFields = ['id'];
-		$this->query = ["isArchived" => ["\$in" => ["\$null", "false"]]];
-		$this->pageNumber = 1;
-		$this->pageSize = 1;
-		$r = $this->call();
+		// Call Gmaven to get total properties
+		$r = $this->post('data/custom/propertyUnit/search', [
+			'sourceFields' => ['id'],
+			'query'	       => ['isArchived' => ["\$in" => ["\$null", "false"]]],
+			'page'	       => ['number' => 1, 'size' => 1]
+		]);
 		$t = $r->md->totalResults;
 
 		// Info
 		$this->cli->green('Fetching '.$t.' units.');
 
 		// Now pull everything
-		$this->sourceFields = include(__DIR__.DIRECTORY_SEPARATOR.'Fields'.DIRECTORY_SEPARATOR.'Units.php');
-		$this->pageSize = $t;
-		$r = $this->call();
-
-		// Check
-		if(count($r) == 0){
-			$this->cli->error("Nothing from Gmaven...");
-			die();
-		}
+		$r = $this->post('data/custom/propertyUnit/search', [
+			'sourceFields' => [
+				'id',
+				'_updated',
+				'propertyId',
+				'unitDetails.gla',
+				'unitDetails.customReferenceId',
+				'unitDetails.primaryCategory',
+				'vacancy.unitDetails.gmr',
+				'vacancy.marketing.availableType'
+			],
+			'query'	=> ['isArchived' => ["\$in" => ["\$null", "false"]]],
+			'page'	=> ['number' => 1, 'size' => $t]
+		]);
+		$t = $r->md->totalResults;
 
 		// Progress bar
 		$progress = $this->cli->progress()->total($t);
@@ -343,58 +432,239 @@ class Gmv extends Arc\Singleton
 		}
 	}
 
-	public function resetImages()
+	/**
+	 * 
+	 */
+	public function getImages()
 	{
-		// Get total pages first
-		$this->endPoint = 'data/content/entity/property/search';
-		$r = $this->call();
-		$t = count($r);
+		// Call Gmaven to get total properties
+		$r = $this->post('data/content/entity/property/search', [
+			'contentCategory' 	=> 'Image'
+		]);
+		$t = count($r->list);
 
 		// Info
 		$this->cli->green('Fetching '.$t.' images.');
 
-		foreach($r as $i => $img){
+		// Progress bar
+		$progress = $this->cli->progress()->total($t);
 
-			print "<pre>"; print_r($img); print "</pre>"; die();
+		// Forge database connection
+		$db = Db::forge($this->get_config());
 
+		// Clear out existing entries
+		$db->query("TRUNCATE TABLE `#gmaven_images`")->exec();
+
+		// Loop over results
+		foreach($r->list as $i => $img){
+
+			// Insert data
+			$q = "
+	      INSERT INTO `#gmaven_images`
+	      (`entityDomainKey`, `contentDomainKey`, `rating`, `updated_at`, `gmv_updated`)
+	      VALUES (
+	        '".$img->entityDomainKey."',
+	        '".$img->contentDomainKey."',
+	        ".( isset($img->metadata->Rating) ? $img->metadata->Rating : 0 ).",
+	        ".$this->time.",
+	        ".$img->updated."
+	      );
+			";
+
+			// Insert
+			$db->query($q)->exec();
+
+			// Update progress bar
+			$progress->current($i);
 		}
 	}
 
 	/**
-	 * @todo
+	 * 
 	 */
-	public function updateProperties()
+	public function getBrokers()
 	{
-		$time = strtotime('-1 day');
+		// Gather team
+		$team = $this->get('cre/user/team/current/user');
 
-		// Get total pages first
-		$this->endPoint = 'data/default/property/search';
-		$this->post = true;
-		$this->sourceFields = ['id'];
-		$this->query = ['_updated' => ['$gte' => $time] ];
-		$this->pageNumber = 1;
-		$this->pageSize = 1;
-		$r = $this->call();
-		$t = $r->md->totalResults;
+		// Forge database connection
+		$db = Db::forge($this->get_config());
 
-		// Info
-		$this->cli->green('Checking '.$t.' properties and associated units for updates.');
+		// We need a list of property ids
+		$list = $db->query(
+			"
+			SELECT D.`gmv_id`, P.`id`  FROM `#gmaven_property_details`D
+			LEFt JOIN `#gmaven_properties` P ON P.`did` = D.`id`
+			"
+		)->get();
 
-		// Pull everything!
-		$this->endPoint = 'data/default/property/search';
-		$this->post = true;
-		$this->sourceFields = 
-		$this->pageNumber = 1;
-		$this->pageSize = 1;
-		$r = $this->call();
+		// Clear out existing entries
+		$db->query("TRUNCATE TABLE `#gmaven_brokers`")->exec();
 
-		print "<pre>"; print_r($r); print "</pre>"; die();
+		// Info and progress
+		$this->cli->green('Match brokers to properties');
+		$progress = $this->cli->progress()->total(count($list));
 
-		// Loop over results
-		foreach($r->list as $i => $p){
+		// Loop over each property
+		foreach($list as $i => $p){
 
-			print "<pre>"; print_r($p); print "</pre>";
+			// Create or reset broker array
+			$brokers = [];
+
+			// Fetch info
+			$r = $this->get('data/entity/property/'.$p['gmv_id'].'/responsibility');
+
+			// Loop over everything and mach up
+			if( isset($r->list) and count($r->list) ){
+				foreach($r->list as $resp){
+					foreach($team as $member){
+						if($resp->userDomainKey == $member->_id){
+
+							// Check if the broker exists
+							if($db->query("SELECT * FROM `#gmaven_brokers` WHERE `gmv_id` = '".$member->_id."'")->get_one('id', false) == false){
+
+								// Inset new broker
+								$q = "
+						      INSERT INTO `#gmaven_brokers`
+						      (`gmv_id`, `name`, `tel`, `email`, `updated_at`)
+						      VALUES (
+						        '".$member->_id."',
+						        '".$member->name."',
+						        '".$member->tel."',
+						        '".$member->email."',
+						        ".$this->time."
+						      );
+								";
+								$db->query($q)->exec();
+							}
+
+							// Get broker id 
+							$bid = $db->query("SELECT `id` FROM `#gmaven_brokers` WHERE `gmv_id` = '".$member->_id."'")->get_one('id');
+
+							// Match up
+							$db->query("UPDATE `#gmaven_properties` SET `bid` = ".$bid." WHERE `id` = ".$p['id'].";")->exec();
+						}
+					}
+				}
+			}
+
+			// Update progress bar
+			$progress->current($i);
 		}
+	}
+
+	/**
+	 * Get data
+	 */
+	private function get($endPoint)
+	{
+		// Set and filter post data
+		$clientDataArray = [
+			'base_uri' => 'https://www.gmaven.com/api/'
+		];
+
+		// Go guzzle
+		//try{
+			// Setup Guzzle
+			$client = new \GuzzleHttp\Client($clientDataArray);
+			$response = $client->request('get', $endPoint, [
+				'headers' => [
+					'gmaven.apiKey' => $this->get_config('key'),
+					'Content-Type'  => 'application/json'
+				]
+			]);
+		//}
+		//catch(\GuzzleHttp\Exception\ClientException $e){
+		//	$this->handleError($e);
+		//}
+		//catch(\GuzzleHttp\Exception\ServerException $e){
+		//	$this->handleError($e);
+		//}
+
+		// Return response data
+		return $this->getResponse($response); 
+	}
+
+	/**
+	 * Post data
+	 */
+	private function post($endPoint, $postFields = [])
+	{
+		// Set and filter post data
+		$clientDataArray = [
+			'base_uri' => 'https://www.gmaven.com/api/',
+			'json'     => array_filter($postFields)
+		];
+
+		// Go guzzle
+		//try{
+			// Setup Guzzle
+			$client = new \GuzzleHttp\Client($clientDataArray);
+			$response = $client->request('post', $endPoint, [
+				'headers' => [
+					'gmaven.apiKey' => $this->get_config('key'),
+					'Content-Type'  => 'application/json'
+				]
+			]);
+		//}
+		//catch(\GuzzleHttp\Exception\ClientException $e){
+		//	$this->handleError($e);
+		//}
+		//catch(\GuzzleHttp\Exception\ServerException $e){
+		//	$this->handleError($e);
+		//}
+
+		// Return response data
+		return $this->getResponse($response); 
+	}
+
+	/**
+	 * Format and return a request 
+	 */
+	private function getResponse($response)
+	{
+		// Get returned status code of request
+		$s = $response->getStatusCode();
+
+		// Normal response
+		if($s == 200){
+
+			// Clean content type
+			$contentType = strtolower($response->getHeader('Content-Type')[0]);
+
+			// Action by content type
+			switch($contentType){
+				case 'application/json; charset=utf-8' :
+				return json_decode($response->getBody()->getContents(), false);
+				
+				default :
+				return $response->getBody()->getContents();
+			}
+		}
+
+		else{
+
+			// Something went wrong
+			switch($s){
+	      // Images that dont exist return false
+	      case '404' : return false; break;
+	      // Key is probably wrong
+	      case '403' : $this->cli->error("No permission"); break;
+	      // Where did Gmaven go?
+	      case '502' : $this->cli->error("Bad Gateway"); break;
+	      // Where did Gmaven go?
+	      case '503' : $this->cli->error("Gmaven service is unavailable or overloaded, please try again later."); break;
+	      case '500' : $this->cli->error("Gmaven service error."); break;
+	      // Something else went wrong
+	      default : $this->cli->error($r);}
+		}
+	}
+
+	/**
+	 * Log and show errors
+	 */
+	private function handleError($e){
+		return false;
 	}
 
 	/**
@@ -415,18 +685,27 @@ class Gmv extends Arc\Singleton
 
 		// Get cURL resource
 		$curl = curl_init();
-		
-		// Set some options - we are passing in a useragent too here
-		curl_setopt_array($curl, [
+
+		// Build base curl array
+		$arr = [
 			CURLOPT_URL	            => 'https://www.gmaven.com/api/'.$this->endPoint,
 	    CURLOPT_RETURNTRANSFER	=> 1,
-	    CURLOPT_POST	          => $this->post,
-	    CURLOPT_POSTFIELDS	    => json_encode($postFields), 
 	    CURLOPT_HTTPHEADER	    => [
 	    	'gmaven.apiKey: '.$this->get_config('key'),
 	    	'Content-Type: application/json'
 	    ]
-		]);
+		];
+
+		// Add post data to curl array
+		if($this->post){
+			$arr = $arr + [
+				CURLOPT_POST	          => $this->post,
+	    	CURLOPT_POSTFIELDS	    => json_encode($postFields),
+	    ];
+		}
+		
+		// Set some options - we are passing in a useragent too here
+		curl_setopt_array($curl, $arr);
 		
 		// Send the request & get status code
 		$r = curl_exec($curl);
@@ -464,7 +743,7 @@ class Gmv extends Arc\Singleton
 			break;
 
 			case '500' :
-			$this->cli->error("Gmaven service error, please report this error.");
+			$this->cli->error("Gmaven service error.");
 			break;
 
 			// Something else went wrong

@@ -71,7 +71,7 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching aggregates data
-		if(false){
+		if(true){
 			$this->getCategories();
 			$this->getProvinces();
 			$this->getSuburbs();
@@ -89,7 +89,7 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching images
-		if(false){
+		if(true){
 			$this->getImages();
 		}
 

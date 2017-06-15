@@ -84,7 +84,7 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching unit data
-		if(false){
+		if(true){
 			$this->getUnits();
 		}
 
@@ -94,7 +94,7 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching images
-		if(true){
+		if(false){
 			$this->getBrokers();
 		}
 	}
@@ -388,16 +388,25 @@ class Gmv extends Arc\Singleton
 				'id',
 				'_updated',
 				'propertyId',
-				'unitDetails.gla',
+				'unitDetails.unitId',
 				'unitDetails.customReferenceId',
+				'unitDetails.gla',
 				'unitDetails.primaryCategory',
+				'vacancy.marketing.availableType',
+				'vacancy.marketing.availableFrom',
+				'vacancy.marketing.noticePeriod',
 				'vacancy.unitDetails.gmr',
-				'vacancy.marketing.availableType'
+				'vacancy.unitDetails.netAskingRental',
+				'vacancy.sales.marketingHeading',
+				'vacancy.sales.description',
+				'vacancy.unitManagement.status'
 			],
-			'query'	=> ['isArchived' => ["\$in" => ["\$null", "false"]]],
+			'query'	=> [
+				//"propertyId" => ["\$eq"   => '8775507b-098f-4862-a9cc-00bea4e39be6'],
+				'isArchived' => ["\$in" => ["\$null", "false"]]
+			],
 			'page'	=> ['number' => 1, 'size' => $t]
 		]);
-		$t = $r->md->totalResults;
 
 		// Progress bar
 		$progress = $this->cli->progress()->total($t);
@@ -411,30 +420,39 @@ class Gmv extends Arc\Singleton
 		// Loop over results
 		foreach($r->list as $i => $u){
 
-			//print "<pre>"; print_r($u); print "</pre>"; die();
+			if(isset($u->propertyId) and !empty($u->propertyId) ){
 
-			// Find province, city, suburb and category id
-			$catId	= $db->query("SELECT `id` FROM `#gmaven_categories` WHERE `category`	= '".(addslashes($u->unitDetails->primaryCategory))."'")->get_one('id');
+				$propertyId = addslashes($u->propertyId);
 
-			// Insert data
-			$q = "
-	      INSERT INTO `#gmaven_units`
-	      (`gmv_id`, `propertyId`, `customReferenceId`, `category_id`, `gla`, `gmr`, `availableType`, `updated_at`, `gmv_updated`)
-	      VALUES (
-	        '".addslashes($u->id)."',
-	        '".(isset($u->propertyId) ? addslashes($u->propertyId) : 'NULL')."',
-	        '".addslashes($u->unitDetails->customReferenceId)."',
-	        ".$catId.",
-	        ".$u->unitDetails->gla.",
-	        ".$u->vacancy->unitDetails->gmr.",
-	        '".addslashes($u->vacancy->marketing->availableType)."',
-	        ".$this->time.",
-	        ".$u->_updated."
-	      );
-			";
+				// Find category id
+				$catId	= $db->query("SELECT `id` FROM `#gmaven_categories` WHERE `category`	= '".(addslashes($u->unitDetails->primaryCategory))."'")->get_one('id');
 
-			// Insert
-			$db->query($q)->exec();
+				// Find Property id
+				$pid = $db->query("SELECT `id` FROM `#gmaven_property_details` WHERE `gmv_id`	= '".$u->propertyId."'")->get_one('id');
+
+				// Insert data
+				$q = "
+		      INSERT INTO `#gmaven_units`
+		      (`pid`, `gmv_id`, `propertyId`, `unitId`, `customReferenceId`, `category_id`, `gla`, `gmr`, `availableType`, `availableFrom`, `updated_at`, `gmv_updated`)
+		      VALUES (
+		        ".$pid.",
+		        '".addslashes($u->id)."',
+		        '".$propertyId."',
+		        '".(isset($u->unitDetails->unitId) ? addslashes($u->unitDetails->unitId) : 'NULL')."',
+		        '".addslashes($u->unitDetails->customReferenceId)."',
+		        ".$catId.",
+		        ".$u->unitDetails->gla.",
+		        ".$u->vacancy->unitDetails->gmr.",
+		        '".addslashes($u->vacancy->marketing->availableType)."',
+		        ".(isset($u->vacancy->marketing->availableFrom) ? $u->vacancy->marketing->availableFrom : 'NULL').",
+		        ".$this->time.",
+		        ".$u->_updated."
+		      );
+				";
+
+				// Insert
+				$db->query($q)->exec();
+			}
 
 			// Update progress bar
 			$progress->current($i);

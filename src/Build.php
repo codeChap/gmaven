@@ -122,13 +122,16 @@ class Build extends Arc\Singleton
 				$q = "
 					CREATE TABLE `".$table."`(
 				   `id`	                INT(11) AUTO_INCREMENT PRIMARY KEY,
+				   `pid`	              VARCHAR(90) NOT NULL,
 				   `gmv_id`	            VARCHAR(90) NOT NULL,
 				   `propertyId`	        VARCHAR(90),
+				   `unitId`	            VARCHAR(90),
 				   `customReferenceId`	VARCHAR(40),
  					 `category_id`	      INT(11) DEFAULT 0,
 				   `gla`	              INT(9) DEFAULT 0,
 				   `gmr`	              INT(9) DEFAULT 0,
 				   `availableType`	    VARCHAR(90),
+				   `availableFrom`	    FLOAT(11,4) DEFAULT 0,
 				   `updated_at`	        INT(11) NOT NULL,
 				   `gmv_updated`	      FLOAT(11,4) NOT NULL
 				  )

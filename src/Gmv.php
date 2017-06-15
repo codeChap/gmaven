@@ -71,7 +71,7 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching aggregates data
-		if(true){
+		if(false){
 			$this->getCategories();
 			$this->getProvinces();
 			$this->getSuburbs();
@@ -89,7 +89,7 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching images
-		if(true){
+		if(false){
 			$this->getImages();
 		}
 
@@ -97,6 +97,8 @@ class Gmv extends Arc\Singleton
 		if(false){
 			$this->getBrokers();
 		}
+
+		return true;
 	}
 
 	/**
@@ -278,6 +280,7 @@ class Gmv extends Arc\Singleton
 			'sourceFields' => [
 				'id',
 				'_updated',
+				'isArchived',
 				'basic.name',
 				'basic.province',
 				'basic.suburb',
@@ -297,9 +300,14 @@ class Gmv extends Arc\Singleton
 				'sales.askingPrice',
 				'sales.valueM2'
 			],
-			'query'	      => ['isArchived'	=> ["\$in" => ["\$null", "false"]]],
-			'page'	      => ['number' => 1, 'size' => $t]
+			'query' => [
+				//'id'	        => ["\$eq" => "a35cb430-4594-4cb1-968f-dbeb66da4b9f"],
+				'isArchived'	=> ["\$in" => ["\$null", "false"]]
+			],
+			'page'	=> ['number' => 1, 'size' => $t]
 		]);
+
+		//print "<pre>"; print_r($r); print "</pre>"; return;
 
 		// Progress bar
 		$progress = $this->cli->progress()->total($t);
@@ -389,6 +397,7 @@ class Gmv extends Arc\Singleton
 			'sourceFields' => [
 				'id',
 				'_updated',
+				'isArchived',
 				'propertyId',
 				'unitDetails.unitId',
 				'unitDetails.customReferenceId',
@@ -404,11 +413,13 @@ class Gmv extends Arc\Singleton
 				'vacancy.unitManagement.status'
 			],
 			'query'	=> [
-				//"propertyId" => ["\$eq"   => '8775507b-098f-4862-a9cc-00bea4e39be6'],
+				"propertyId" => ["\$eq"   => 'a35cb430-4594-4cb1-968f-dbeb66da4b9f'],
 				'isArchived' => ["\$in" => ["\$null", "false"]]
 			],
 			'page'	=> ['number' => 1, 'size' => $t]
 		]);
+
+		//print "<pre>"; print_r($r); print "</pre>"; return;
 
 		// Progress bar
 		$progress = $this->cli->progress()->total($t);
@@ -632,7 +643,7 @@ class Gmv extends Arc\Singleton
 		// Clean array
 		$postFields = array_filter($postFields);
 
-		//print(json_encode($postFields, JSON_PRETTY_PRINT)); die();
+		//print(json_encode($postFields, JSON_PRETTY_PRINT));
 
 		// Set and filter post data
 		$clientDataArray = [

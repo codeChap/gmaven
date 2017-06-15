@@ -79,7 +79,7 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching property data
-		if(true){
+		if(false){
 			$this->getProperties();
 		}
 
@@ -94,7 +94,7 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching images
-		if(false){
+		if(true){
 			$this->getBrokers();
 		}
 	}
@@ -503,7 +503,7 @@ class Gmv extends Arc\Singleton
 		$list = $db->query(
 			"
 			SELECT D.`gmv_id`, P.`id`  FROM `#gmaven_property_details`D
-			LEFt JOIN `#gmaven_properties` P ON P.`did` = D.`id`
+			LEFT JOIN `#gmaven_properties` P ON P.`did` = D.`id`
 			"
 		)->get();
 
@@ -524,34 +524,11 @@ class Gmv extends Arc\Singleton
 			$r = $this->get('data/entity/property/'.$p['gmv_id'].'/responsibility');
 
 			// Loop over everything and mach up
-			if( isset($r->list) and count($r->list) ){
-				foreach($r->list as $resp){
+			if(isset($r->list) and count($r->list)){
+				foreach($r->list as $l){
 					foreach($team as $member){
-						if($resp->userDomainKey == $member->_id){
-
-							// Check if the broker exists
-							if($db->query("SELECT * FROM `#gmaven_brokers` WHERE `gmv_id` = '".$member->_id."'")->get_one('id', false) == false){
-
-								// Inset new broker
-								$q = "
-						      INSERT INTO `#gmaven_brokers`
-						      (`gmv_id`, `name`, `tel`, `email`, `updated_at`)
-						      VALUES (
-						        '".$member->_id."',
-						        '".$member->name."',
-						        '".$member->tel."',
-						        '".$member->email."',
-						        ".$this->time."
-						      );
-								";
-								$db->query($q)->exec();
-							}
-
-							// Get broker id 
-							$bid = $db->query("SELECT `id` FROM `#gmaven_brokers` WHERE `gmv_id` = '".$member->_id."'")->get_one('id');
-
-							// Match up
-							$db->query("UPDATE `#gmaven_properties` SET `bid` = ".$bid." WHERE `id` = ".$p['id'].";")->exec();
+						if($l->userDomainKey == $member->_id){
+							$this->brokerInset($member, $p);
 						}
 					}
 				}
@@ -560,6 +537,39 @@ class Gmv extends Arc\Singleton
 			// Update progress bar
 			$progress->current($i);
 		}
+	}
+
+	/**
+	 * 
+	 */
+	public function brokerInset($member, $p)
+	{
+		// Forge database connection
+		$db = Db::forge($this->get_config());
+
+		// Check  if the broker exists
+		if($db->query("SELECT * FROM `#gmaven_brokers` WHERE `gmv_id` = '".$member->_id."'")->get_one('id', false) == false){
+
+			// Inset new broker
+			$q = "
+			INSERT INTO `#gmaven_brokers`
+			(`gmv_id`, `name`, `tel`, `email`, `updated_at`)
+			VALUES (
+			  '".$member->_id."',
+			  '".$member->name."',
+			  '".$member->tel."',
+			  '".$member->email."',
+			  ".$this->time."
+			);
+			";
+			$db->query($q)->exec();
+		}
+
+		// Get broker id 
+		$bid = $db->query("SELECT `id` FROM `#gmaven_brokers` WHERE `gmv_id` = '".$member->_id."'")->get_one('id');
+
+		// Match up
+		$db->query("UPDATE `#gmaven_properties` SET `bid` = ".$bid." WHERE `id` = ".$p['id'].";")->exec();
 	}
 
 	/**
@@ -633,7 +643,9 @@ class Gmv extends Arc\Singleton
 	}
 
 	/**
-	 * Format and return a request 
+	 * Format and return a request
+	 *
+	 * @param Object Guzzle Response Object
 	 */
 	private function getResponse($response)
 	{
@@ -648,9 +660,12 @@ class Gmv extends Arc\Singleton
 
 			// Action by content type
 			switch($contentType){
+				
+				// Json
 				case 'application/json; charset=utf-8' :
 				return json_decode($response->getBody()->getContents(), false);
 				
+				// Unknown
 				default :
 				return $response->getBody()->getContents();
 			}
@@ -670,7 +685,8 @@ class Gmv extends Arc\Singleton
 	      case '503' : $this->cli->error("Gmaven service is unavailable or overloaded, please try again later."); break;
 	      case '500' : $this->cli->error("Gmaven service error."); break;
 	      // Something else went wrong
-	      default : $this->cli->error($r);}
+	      default : $this->cli->error($r);
+	    }
 		}
 	}
 
@@ -679,104 +695,5 @@ class Gmv extends Arc\Singleton
 	 */
 	private function handleError($e){
 		return false;
-	}
-
-
-
-
-
-
-
-
-
-
-	/**
-	 * Execute a call to Gmaven
-	 */
-	private function call()
-	{
-		// Filter post data
-		$postFields = array_filter([
-	  	'sourceFields' => $this->sourceFields,
-	  	'aggregates'	 => $this->aggregates,
-	  	'query'	       => $this->query,
-	  	'size'         => $this->size,
-	  	'page'         => ['number' => $this->pageNumber, 'size' => $this->pageSize]
-		]);
-
-		//print "<pre>"; print_r($postFields); print "</pre>"; die();
-
-		// Get cURL resource
-		$curl = curl_init();
-
-		// Build base curl array
-		$arr = [
-			CURLOPT_URL	            => 'https://www.gmaven.com/api/'.$this->endPoint,
-	    CURLOPT_RETURNTRANSFER	=> 1,
-	    CURLOPT_HTTPHEADER	    => [
-	    	'gmaven.apiKey: '.$this->get_config('key'),
-	    	'Content-Type: application/json'
-	    ]
-		];
-
-		// Add post data to curl array
-		if($this->post){
-			$arr = $arr + [
-				CURLOPT_POST	          => $this->post,
-	    	CURLOPT_POSTFIELDS	    => json_encode($postFields),
-	    ];
-		}
-		
-		// Set some options - we are passing in a useragent too here
-		curl_setopt_array($curl, $arr);
-		
-		// Send the request & get status code
-		$r = curl_exec($curl);
-		$s = curl_getinfo($curl, CURLINFO_HTTP_CODE);
-		
-		// Close request to clear up some resources
-		curl_close($curl);
-
-		// Return as array if ok
-		if($s == 200){
-			return json_decode($r);
-		}
-
-		// Something went wrong
-		switch($s){
-			
-			// Images that dont exist return false
-			case '404' :
-				return false; 
-			break;
-
-			// Key is probably wrong
-			case '403' :
-			$this->cli->error("No permission");
-			break;
-
-			// Where did Gmaven go?
-			case '502' :
-			$this->cli->error("Bad Gateway");
-			break;
-
-			// Where did Gmaven go?
-			case '503' :
-			$this->cli->error("Gmaven service is unavailable or overloaded, please try again later.");
-			break;
-
-			case '500' :
-			$this->cli->error("Gmaven service error.");
-			break;
-
-			// Something else went wrong
-			default :
-			$this->cli->error($r);
-		}
-
-		return false;
-
-		// Done
-		//return json_encode(json_decode($resp, true), JSON_PRETTY_PRINT);
 	}
 }

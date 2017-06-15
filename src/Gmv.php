@@ -413,7 +413,7 @@ class Gmv extends Arc\Singleton
 				'vacancy.unitManagement.status'
 			],
 			'query'	=> [
-				"propertyId" => ["\$eq"   => 'a35cb430-4594-4cb1-968f-dbeb66da4b9f'],
+				//"propertyId" => ["\$eq"   => 'a35cb430-4594-4cb1-968f-dbeb66da4b9f'],
 				'isArchived' => ["\$in" => ["\$null", "false"]]
 			],
 			'page'	=> ['number' => 1, 'size' => $t]

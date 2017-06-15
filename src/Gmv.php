@@ -79,7 +79,7 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching property data
-		if(false){
+		if(true){
 			$this->getProperties();
 		}
 
@@ -263,6 +263,7 @@ class Gmv extends Arc\Singleton
 		// Call Gmaven to get total properties
 		$r = $this->post('data/default/property/search', [
 			'sourceFields' => ['id'],
+			'query'	       => ['isArchived'	=> ["\$in" => ["\$null", "false"]]],
 			'page'	       => ['number' => 1, 'size' => 1]
 		]);
 		$t = $r->md->totalResults;
@@ -296,7 +297,8 @@ class Gmv extends Arc\Singleton
 				'sales.askingPrice',
 				'sales.valueM2'
 			],
-			'page' => ['number' => 1, 'size' => $t]
+			'query'	      => ['isArchived'	=> ["\$in" => ["\$null", "false"]]],
+			'page'	      => ['number' => 1, 'size' => $t]
 		]);
 
 		// Progress bar

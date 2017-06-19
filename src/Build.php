@@ -132,6 +132,8 @@ class Build extends Arc\Singleton
 				   `gmr`	              INT(9) DEFAULT 0,
 				   `availableType`	    VARCHAR(90),
 				   `availableFrom`	    FLOAT(11,4) DEFAULT 0,
+				   `marketingHeading`	  VARCHAR(90),
+				   `description`	      BLOB,
 				   `updated_at`	        INT(11) NOT NULL,
 				   `gmv_updated`	      FLOAT(11,4) NOT NULL
 				  )

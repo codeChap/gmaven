@@ -79,12 +79,12 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching property data
-		if(true){
+		if(false){
 			$this->getProperties();
 		}
 
 		// Start fetching unit data
-		if(false){
+		if(true){
 			$this->getUnits();
 		}
 
@@ -451,7 +451,7 @@ class Gmv extends Arc\Singleton
 				// Insert data
 				$q = "
 		      INSERT INTO `#gmaven_units`
-		      (`pid`, `gmv_id`, `propertyId`, `unitId`, `customReferenceId`, `category_id`, `gla`, `gmr`, `availableType`, `availableFrom`, `updated_at`, `gmv_updated`)
+		      (`pid`, `gmv_id`, `propertyId`, `unitId`, `customReferenceId`, `category_id`, `gla`, `gmr`, `availableType`, `availableFrom`, `marketingHeading`, `description`, `updated_at`, `gmv_updated`)
 		      VALUES (
 		        ".$pid.",
 		        '".addslashes($u->id)."',
@@ -463,10 +463,14 @@ class Gmv extends Arc\Singleton
 		        ".$u->vacancy->unitDetails->gmr.",
 		        '".addslashes($u->vacancy->marketing->availableType)."',
 		        ".(isset($u->vacancy->marketing->availableFrom) ? $u->vacancy->marketing->availableFrom : 'NULL').",
+		        '".(isset($u->vacancy->sales->marketingHeading) ? addslashes($u->vacancy->sales->marketingHeading) : 'NULL')."',
+		        '".(isset($u->vacancy->sales->description) ? addslashes($u->vacancy->sales->description) : 'NULL')."',
 		        ".$this->time.",
 		        ".$u->_updated."
 		      );
 				";
+
+				//print $q;
 
 				// Insert
 				$db->query($q)->exec();

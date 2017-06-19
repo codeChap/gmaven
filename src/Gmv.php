@@ -14,19 +14,19 @@ namespace CodeChap\Gmv;
 class Gmv extends Arc\Singleton
 {
 	public $endPoint = false;
-	
+
 	public $post = true;
-	
+
 	public $sourceFields = [];
-	
+
 	public $aggregates = [];
 
 	public $query = [];
 
 	public $size = false;
-	
+
 	public $pageSize = false;
-	
+
 	public $pageNumber = false;
 
 	public $time = false;
@@ -42,7 +42,7 @@ class Gmv extends Arc\Singleton
 	 * Constructor
 	 */
 	public function __construct($config)
-	{		
+	{
 		// Setup climate and record current time
 		$this->cli = new \League\CLImate\CLImate;
 		$this->time = time();
@@ -71,7 +71,7 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching aggregates data
-		if(true){
+		if(false){
 			$this->getCategories();
 			$this->getProvinces();
 			$this->getSuburbs();
@@ -84,17 +84,17 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching unit data
-		if(true){
+		if(false){
 			$this->getUnits();
 		}
 
 		// Start fetching images
-		if(true){
+		if(false){
 			$this->getImages();
 		}
 
 		// Start fetching images
-		if(true){
+		if(false){
 			$this->getBrokers();
 		}
 
@@ -265,7 +265,12 @@ class Gmv extends Arc\Singleton
 		// Call Gmaven to get total properties
 		$r = $this->post('data/default/property/search', [
 			'sourceFields' => ['id'],
-			'query'	       => ['isArchived'	=> ["\$in" => ["\$null", "false"]]],
+			'query'	       => [
+				//'id' => ["\$eq" => "23a72c37-b3f2-4728-8ac1-b0458f136fb2"],
+				'isArchived'	=> [
+					"\$in" => ["\$null", "false"]
+				]
+			],
 			'page'	       => ['number' => 1, 'size' => 1]
 		]);
 		$t = $r->md->totalResults;
@@ -643,7 +648,7 @@ class Gmv extends Arc\Singleton
 		// Clean array
 		$postFields = array_filter($postFields);
 
-		//print(json_encode($postFields, JSON_PRETTY_PRINT));
+		//print(json_encode($postFields, JSON_PRETTY_PRINT)); die();
 
 		// Set and filter post data
 		$clientDataArray = [

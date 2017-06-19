@@ -10,7 +10,7 @@
  * @copyright  2017 Octane
  */
 
-namespace CodeChap\Arc;
+namespace CodeChap\Gmv\Arc;
 
 abstract class Singleton
 {

@@ -9,7 +9,7 @@
  * 
  */
 
-namespace CodeChap;
+namespace CodeChap\Gmv;
 
 class Gmv extends Arc\Singleton
 {

@@ -4,7 +4,7 @@
  * Builds the database tables
  */
 
-namespace CodeChap;
+namespace CodeChap\Gmv;
 
 class Db extends Arc\Singleton
 {

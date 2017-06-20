@@ -262,14 +262,14 @@ class Gmv extends Arc\Singleton
 	 */
 	private function getProperties()
 	{
-		// Call Gmaven to get total properties
+		// Call Gmaven to get total properties including archived ones
 		$r = $this->post('data/default/property/search', [
 			'sourceFields' => ['id'],
 			'query'	       => [
 				//'id' => ["\$eq" => "23a72c37-b3f2-4728-8ac1-b0458f136fb2"],
-				'isArchived'	=> [
-					"\$in" => ["\$null", "false"]
-				]
+				//'isArchived'	=> [
+				//	"\$in" => ["\$null", "false"]
+				//]
 			],
 			'page'	       => ['number' => 1, 'size' => 1]
 		]);
@@ -307,12 +307,10 @@ class Gmv extends Arc\Singleton
 			],
 			'query' => [
 				//'id'	        => ["\$eq" => "a35cb430-4594-4cb1-968f-dbeb66da4b9f"],
-				'isArchived'	=> ["\$in" => ["\$null", "false"]]
+				//'isArchived'	=> ["\$in" => ["\$null", "false"]]
 			],
 			'page'	=> ['number' => 1, 'size' => $t]
 		]);
-
-		//print "<pre>"; print_r($r); print "</pre>"; return;
 
 		// Progress bar
 		$progress = $this->cli->progress()->total($t);
@@ -326,8 +324,6 @@ class Gmv extends Arc\Singleton
 
 		// Loop over results
 		foreach($r->list as $i => $p){
-
-			//print "<pre>"; print_r($p); print "</pre>";
 
 			// Find province, city, suburb and category id
 			$catId	= $db->query("SELECT `id` FROM `#gmaven_categories` WHERE `category`	= '".(addslashes($p->basic->primaryCategory))."'")->get_one('id');
@@ -344,9 +340,9 @@ class Gmv extends Arc\Singleton
 	      VALUES (
 	        '".addslashes($p->id)."',
 	        '".addslashes($p->basic->name)."',
-	        '".addslashes($p->basic->customReferenceId)."',
-	        '".addslashes($p->basic->displayAddress)."',
-	        '".addslashes($p->basic->marketingBlurb)."'
+	        '".(isset($p->basic->customReferenceId)	  ? addslashes($p->basic->customReferenceId)	: 'NULL')."',
+	        '".(isset($p->basic->displayAddress)	    ? addslashes($p->basic->displayAddress)	    : 'NULL')."',
+	        '".(isset($p->basic->marketingBlurb)	    ? addslashes($p->basic->marketingBlurb)	    : 'NULL')."'
 	      );
 
 	      INSERT INTO `#gmaven_properties`
@@ -440,37 +436,40 @@ class Gmv extends Arc\Singleton
 
 			if(isset($u->propertyId) and !empty($u->propertyId) ){
 
-				$propertyId = addslashes($u->propertyId);
+				$pid = 0;
+				$catId = 0;
 
 				// Find category id
-				$catId	= $db->query("SELECT `id` FROM `#gmaven_categories` WHERE `category`	= '".(addslashes($u->unitDetails->primaryCategory))."'")->get_one('id');
+				if(isset($u->unitDetails->primaryCategory) and $catgoryId = addslashes($u->unitDetails->primaryCategory)){
+					$catId = $db->query("SELECT `id` FROM `#gmaven_categories` WHERE `category`	= '".$catgoryId."'")->get_one('id');
+				}
 
 				// Find Property id
-				$pid = $db->query("SELECT `id` FROM `#gmaven_property_details` WHERE `gmv_id`	= '".$u->propertyId."'")->get_one('id');
+				if(isset($u->propertyId) and $propertyId = addslashes($u->propertyId)){
+					$pid = $db->query("SELECT `id` FROM `#gmaven_property_details` WHERE `gmv_id`	= '".$propertyId."'")->get_one('id');
+				}
 
 				// Insert data
 				$q = "
 		      INSERT INTO `#gmaven_units`
-		      (`pid`, `gmv_id`, `propertyId`, `unitId`, `customReferenceId`, `category_id`, `gla`, `gmr`, `availableType`, `availableFrom`, `marketingHeading`, `description`, `updated_at`, `gmv_updated`)
+		      (`pid`, `category_id`, `gla`, `gmr`,`availableFrom`, `propertyId`, `gmv_id`, `unitId`, `customReferenceId`,  `availableType`, `marketingHeading`, `description`, `updated_at`, `gmv_updated`)
 		      VALUES (
 		        ".$pid.",
-		        '".addslashes($u->id)."',
-		        '".$propertyId."',
-		        '".(isset($u->unitDetails->unitId) ? addslashes($u->unitDetails->unitId) : 'NULL')."',
-		        '".addslashes($u->unitDetails->customReferenceId)."',
 		        ".$catId.",
-		        ".$u->unitDetails->gla.",
-		        ".$u->vacancy->unitDetails->gmr.",
-		        '".addslashes($u->vacancy->marketing->availableType)."',
-		        ".(isset($u->vacancy->marketing->availableFrom) ? $u->vacancy->marketing->availableFrom : 'NULL').",
-		        '".(isset($u->vacancy->sales->marketingHeading) ? addslashes($u->vacancy->sales->marketingHeading) : 'NULL')."',
-		        '".(isset($u->vacancy->sales->description) ? addslashes($u->vacancy->sales->description) : 'NULL')."',
+		        ".(isset($u->unitDetails->gla)	                  ? $u->unitDetails->gla : 0).",
+		        ".(isset($u->vacancy->unitDetails->gmr)	          ? $u->vacancy->unitDetails->gmr : 0).",
+		        ".(isset($u->vacancy->marketing->availableFrom)	  ? $u->vacancy->marketing->availableFrom	            : 'NULL').",
+		        '".$propertyId."',
+		        '".addslashes($u->id)."',
+		        '".(isset($u->unitDetails->unitId)	              ? addslashes($u->unitDetails->unitId)	              : 'NULL')."',
+		        '".(isset($u->unitDetails->customReferenceId)	    ? addslashes($u->unitDetails->customReferenceId)	  : 'NULL')."',
+		        '".(isset($u->vacancy->marketing->availableType)	? addslashes($u->vacancy->marketing->availableType) : 'NULL')."',
+		        '".(isset($u->vacancy->sales->marketingHeading)	  ? addslashes($u->vacancy->sales->marketingHeading)	: 'NULL')."',
+		        '".(isset($u->vacancy->sales->description)	      ? addslashes($u->vacancy->sales->description)	      : 'NULL')."',
 		        ".$this->time.",
 		        ".$u->_updated."
 		      );
 				";
-
-				//print $q;
 
 				// Insert
 				$db->query($q)->exec();

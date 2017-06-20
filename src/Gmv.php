@@ -452,7 +452,7 @@ class Gmv extends Arc\Singleton
 				// Insert data
 				$q = "
 		      INSERT INTO `#gmaven_units`
-		      (`pid`, `category_id`, `gla`, `gmr`,`availableFrom`, `propertyId`, `gmv_id`, `unitId`, `customReferenceId`,  `availableType`, `marketingHeading`, `description`, `updated_at`, `gmv_updated`)
+		      (`pid`, `category_id`, `gla`, `gmr`,`availableFrom`, `propertyId`, `gmv_id`, `unitId`, `customReferenceId`, `availableType`, `marketingHeading`, `description`, `updated_at`, `gmv_updated`)
 		      VALUES (
 		        ".$pid.",
 		        ".$catId.",
@@ -470,6 +470,8 @@ class Gmv extends Arc\Singleton
 		        ".$u->_updated."
 		      );
 				";
+
+				//print $q; die();
 
 				// Insert
 				$db->query($q)->exec();

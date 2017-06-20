@@ -71,7 +71,7 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching aggregates data
-		if(false){
+		if(true){
 			$this->getCategories();
 			$this->getProvinces();
 			$this->getSuburbs();
@@ -79,7 +79,7 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching property data
-		if(false){
+		if(true){
 			$this->getProperties();
 		}
 
@@ -89,12 +89,12 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching images
-		if(false){
+		if(true){
 			$this->getImages();
 		}
 
 		// Start fetching images
-		if(false){
+		if(true){
 			$this->getBrokers();
 		}
 
@@ -535,6 +535,8 @@ class Gmv extends Arc\Singleton
 	{
 		// Gather team
 		$team = $this->get('cre/user/team/current/user');
+
+		//print "<pre>"; print_r($team); print "</pre>"; die();
 
 		// Forge database connection
 		$db = Db::forge($this->get_config());

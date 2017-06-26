@@ -13,28 +13,15 @@ namespace CodeChap\Gmv;
 
 class Gmv extends Arc\Singleton
 {
-	public $endPoint = false;
-
-	public $post = true;
-
-	public $sourceFields = [];
-
-	public $aggregates = [];
-
-	public $query = [];
-
-	public $size = false;
-
-	public $pageSize = false;
-
-	public $pageNumber = false;
-
+	/**
+	 * Store the start time
+	 */
 	public $time = false;
 
+	/**
+	 * Command lime object
+	 */
 	public $cli = false;
-
-	public $client = false;
-	public $headers = [];
 
 	/**
 	 * Constructor
@@ -199,16 +186,20 @@ class Gmv extends Arc\Singleton
 
 		// Gather data
 		$data = array_filter($r->aggregates->{'basic.province$$distinct'});
+		$t = count($data);
 
-		// Progress bar
-		$progress = $this->cli->progress()->total(count($data));
+		if($t){
 
-		// Insert
-		$db = Db::forge($this->get_config());
-		$db->query("TRUNCATE TABLE `#gmaven_provinces`")->exec();
-		foreach($data as $i => $province){
-			$db->query("INSERT INTO `#gmaven_provinces` (`province`, `updated_at`) VALUES('".addslashes($province)."', ".$this->time.")")->exec();
-			$progress->current($i);
+			// Progress bar
+			$progress = $this->cli->progress()->total($t);
+
+			// Insert
+			$db = Db::forge($this->get_config());
+			$db->query("TRUNCATE TABLE `#gmaven_provinces`")->exec();
+			foreach($data as $i => $province){
+				$db->query("INSERT INTO `#gmaven_provinces` (`province`, `updated_at`) VALUES('".addslashes($province)."', ".$this->time.")")->exec();
+				$progress->current($i+1);
+			}
 		}
 	}
 
@@ -247,24 +238,28 @@ class Gmv extends Arc\Singleton
 		
 			// Gather data
 			$data = array_filter($r->aggregates->{'basic.suburb$$distinct'});
+			$t = count($data);
 
-			// Progress bar
-			$progress = $this->cli->progress()->total( (count($data) ) );
+			if($t){
 
-			// Insert
-			foreach($data as $i => $suburb){
-				$db->query("
-					INSERT INTO `#gmaven_suburbs`
-					(`suburb`, `province_id`, `updated_at`)
-					VALUES(
-						'".addslashes($suburb)."',
-						".$p['id'].",
-						".$this->time."
-					)
-				")->exec();
-				
-				// Update progress
-				$progress->current($i);
+				// Progress bar
+				$progress = $this->cli->progress()->total($t);
+
+				// Insert
+				foreach($data as $i => $suburb){
+					$db->query("
+						INSERT INTO `#gmaven_suburbs`
+						(`suburb`, `province_id`, `updated_at`)
+						VALUES(
+							'".addslashes($suburb)."',
+							".$p['id'].",
+							".$this->time."
+						)
+					")->exec();
+					
+					// Update progress
+					$progress->current($i+1);
+				}
 			}
 		}
 	}
@@ -287,16 +282,20 @@ class Gmv extends Arc\Singleton
 
 		// Gather data
 		$data = array_filter($r->aggregates->{'basic.city$$distinct'});
+		$t = count($data);
 
-		// Progress bar
-		$progress = $this->cli->progress()->total( count($data) );
+		if($t){
 
-		// Insert
-		$db = Db::forge($this->get_config());
-		$db->query("TRUNCATE TABLE `#gmaven_cities`")->exec();
-		foreach($data as $i => $city){
-			$db->query("INSERT INTO `#gmaven_cities` (`city`, `updated_at`) VALUES('".addslashes($city)."', ".$this->time.")")->exec();
-			$progress->current($i);
+			// Progress bar
+			$progress = $this->cli->progress()->total($t);
+
+			// Insert
+			$db = Db::forge($this->get_config());
+			$db->query("TRUNCATE TABLE `#gmaven_cities`")->exec();
+			foreach($data as $i => $city){
+				$db->query("INSERT INTO `#gmaven_cities` (`city`, `updated_at`) VALUES('".addslashes($city)."', ".$this->time.")")->exec();
+				$progress->current($i+1);
+			}
 		}
 	}
 
@@ -313,9 +312,11 @@ class Gmv extends Arc\Singleton
 	 */
 	private function getProperties($fromWhen = false)
 	{
+		// Vars
 		$query = [];
 		$from = [];
 
+		// Partial or full sync
 		if($fromWhen){
 			$from = [
 				"_updated" => ["\$gte" => $fromWhen]
@@ -329,10 +330,16 @@ class Gmv extends Arc\Singleton
 			'page'	       => ['number' => 1, 'size' => 1]
 		]);
 		
+		// Find total
 		$t = $r->md->totalResults;
 
 		// Info
 		$this->cli->green('Fetching '.$t.' properties.');
+
+		// Only continue if there is work to be done
+		if($t == 0){
+			return;
+		}
 
 		// Now pull everything!
 		$r = $this->post('data/default/property/search', [
@@ -445,7 +452,7 @@ class Gmv extends Arc\Singleton
 			$db->query($q)->exec();
 
 			// Update progress bar
-			$progress->current($i);
+			$progress->current($i+1);
 		}
 
 		// Done
@@ -459,13 +466,17 @@ class Gmv extends Arc\Singleton
 	 */
 	public function getUnits($fromWhen = false)
 	{
+		// Vars
+		$query = [];
+		$from = [];
+
 		$query = [
 			'isArchived' => [
 				"\$in" => ["\$null", "false"]
 			]
 		];
-		$from = [];
 
+		// Partial or full sync
 		if($fromWhen){
 			$from = [
 				"_updated" => ["\$gte" => $fromWhen]
@@ -482,6 +493,11 @@ class Gmv extends Arc\Singleton
 
 		// Info
 		$this->cli->green('Fetching '.$t.' units.');
+
+		// Only continue if there is work to be done
+		if($t == 0){
+			return;
+		}
 
 		// Now pull everything
 		$r = $this->post('data/custom/propertyUnit/search', [
@@ -567,7 +583,7 @@ class Gmv extends Arc\Singleton
 			}
 
 			// Update progress bar
-			$progress->current($i);
+			$progress->current($i+1);
 		}
 
 		return $t;
@@ -586,6 +602,11 @@ class Gmv extends Arc\Singleton
 
 		// Info
 		$this->cli->green('Fetching '.$t.' images.');
+
+		// Only continue if there is work to be done
+		if($t == 0){
+			return;
+		}
 
 		// Progress bar
 		$progress = $this->cli->progress()->total($t);
@@ -616,9 +637,10 @@ class Gmv extends Arc\Singleton
 			$db->query($q)->exec();
 
 			// Update progress bar
-			$progress->current($i);
+			$progress->current($i+1);
 		}
 
+		// Done
 		return $t;
 	}
 
@@ -707,7 +729,9 @@ class Gmv extends Arc\Singleton
 	}
 
 	/**
-	 * Get data
+	 * Get data via Guzzle
+	 *
+	 * @param String The endpoint we calling against
 	 */
 	private function get($endPoint)
 	{
@@ -739,7 +763,10 @@ class Gmv extends Arc\Singleton
 	}
 
 	/**
-	 * Post data
+	 * Post data via Guzzle
+	 *
+	 * @param String The endpoint we calling against
+	 * @param Array Extra data to send to Gmaven
 	 */
 	private function post($endPoint, $postFields = [])
 	{
@@ -831,3 +858,4 @@ class Gmv extends Arc\Singleton
 		return false;
 	}
 }
+?>

@@ -171,7 +171,7 @@ class Gmv extends Arc\Singleton
 		$db->query("TRUNCATE TABLE `#gmaven_categories`")->exec();
 		foreach($data as $i => $category){
 			$db->query("INSERT INTO `#gmaven_categories` (`category`, `updated_at`) VALUES('".addslashes($category)."', ".$this->time.")")->exec();
-			$progress->current($i+1);
+			$progress->current($i);
 		}
 
 		// Return total
@@ -205,7 +205,7 @@ class Gmv extends Arc\Singleton
 		$db->query("TRUNCATE TABLE `#gmaven_provinces`")->exec();
 		foreach($data as $i => $province){
 			$db->query("INSERT INTO `#gmaven_provinces` (`province`, `updated_at`) VALUES('".addslashes($province)."', ".$this->time.")")->exec();
-			$progress->current($i+1);
+			$progress->current($i);
 		}
 	}
 
@@ -246,7 +246,7 @@ class Gmv extends Arc\Singleton
 			$data = array_filter($r->aggregates->{'basic.suburb$$distinct'});
 
 			// Progress bar
-			$progress = $this->cli->progress()->total( count($data) );
+			$progress = $this->cli->progress()->total( (count($data) ) );
 
 			// Insert
 			foreach($data as $i => $suburb){
@@ -261,7 +261,7 @@ class Gmv extends Arc\Singleton
 				")->exec();
 				
 				// Update progress
-				$progress->current($i+1);
+				$progress->current($i);
 			}
 		}
 	}
@@ -286,14 +286,14 @@ class Gmv extends Arc\Singleton
 		$data = array_filter($r->aggregates->{'basic.city$$distinct'});
 
 		// Progress bar
-		$progress = $this->cli->progress()->total(count($data));
+		$progress = $this->cli->progress()->total( count($data) );
 
 		// Insert
 		$db = Db::forge($this->get_config());
 		$db->query("TRUNCATE TABLE `#gmaven_cities`")->exec();
 		foreach($data as $i => $city){
 			$db->query("INSERT INTO `#gmaven_cities` (`city`, `updated_at`) VALUES('".addslashes($city)."', ".$this->time.")")->exec();
-			$progress->current($i+1);
+			$progress->current($i);
 		}
 	}
 
@@ -442,7 +442,7 @@ class Gmv extends Arc\Singleton
 			$db->query($q)->exec();
 
 			// Update progress bar
-			$progress->current($i+1);
+			$progress->current($i);
 		}
 
 		// Done
@@ -564,7 +564,7 @@ class Gmv extends Arc\Singleton
 			}
 
 			// Update progress bar
-			$progress->current($i+1);
+			$progress->current($i);
 		}
 
 		return $t;
@@ -613,7 +613,7 @@ class Gmv extends Arc\Singleton
 			$db->query($q)->exec();
 
 			// Update progress bar
-			$progress->current($i+1);
+			$progress->current($i);
 		}
 
 		return $t;
@@ -666,7 +666,7 @@ class Gmv extends Arc\Singleton
 			}
 
 			// Update progress bar
-			$progress->current($i+1);
+			$progress->current($i);
 		}
 	}
 

@@ -37,7 +37,7 @@ class Gmv extends Arc\Singleton
 	}
 
 	/**
-	 * Give info
+	 * Destructor
 	 */
 	public function __destruct()
 	{
@@ -161,7 +161,7 @@ class Gmv extends Arc\Singleton
 		$db->query("TRUNCATE TABLE `#gmaven_categories`")->exec();
 		foreach($data as $i => $category){
 			$db->query("INSERT INTO `#gmaven_categories` (`category`, `updated_at`) VALUES('".addslashes($category)."', ".$this->time.")")->exec();
-			$progress->current($i);
+			$progress->advance();
 		}
 
 		// Return total
@@ -198,7 +198,7 @@ class Gmv extends Arc\Singleton
 			$db->query("TRUNCATE TABLE `#gmaven_provinces`")->exec();
 			foreach($data as $i => $province){
 				$db->query("INSERT INTO `#gmaven_provinces` (`province`, `updated_at`) VALUES('".addslashes($province)."', ".$this->time.")")->exec();
-				$progress->current($i+1);
+				$progress->advance();
 			}
 		}
 	}
@@ -258,7 +258,7 @@ class Gmv extends Arc\Singleton
 					")->exec();
 					
 					// Update progress
-					$progress->current($i+1);
+					$progress->advance();
 				}
 			}
 		}
@@ -294,7 +294,7 @@ class Gmv extends Arc\Singleton
 			$db->query("TRUNCATE TABLE `#gmaven_cities`")->exec();
 			foreach($data as $i => $city){
 				$db->query("INSERT INTO `#gmaven_cities` (`city`, `updated_at`) VALUES('".addslashes($city)."', ".$this->time.")")->exec();
-				$progress->current($i+1);
+				$progress->advance();
 			}
 		}
 	}
@@ -452,7 +452,7 @@ class Gmv extends Arc\Singleton
 			$db->query($q)->exec();
 
 			// Update progress bar
-			$progress->current($i+1);
+			$progress->advance();
 		}
 
 		// Done
@@ -583,7 +583,7 @@ class Gmv extends Arc\Singleton
 			}
 
 			// Update progress bar
-			$progress->current($i+1);
+			$progress->advance();
 		}
 
 		return $t;
@@ -637,7 +637,7 @@ class Gmv extends Arc\Singleton
 			$db->query($q)->exec();
 
 			// Update progress bar
-			$progress->current($i+1);
+			$progress->advance();
 		}
 
 		// Done
@@ -691,7 +691,7 @@ class Gmv extends Arc\Singleton
 			}
 
 			// Update progress bar
-			$progress->current($i);
+			$progress->advance();
 		}
 	}
 

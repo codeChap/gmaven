@@ -14,7 +14,6 @@ class basicTest extends TestCase
   		'base'	=> 'dev_jhi',
   		'pfx'	  => 'jhi_'
     ]);
-    $g->sync();
-   //$r = $g->install();
+    $g->partial();
   }
 }

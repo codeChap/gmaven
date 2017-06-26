@@ -33,8 +33,6 @@ class Gmv extends Arc\Singleton
 
 	public $cli = false;
 
-
-
 	public $client = false;
 	public $headers = [];
 
@@ -70,35 +68,67 @@ class Gmv extends Arc\Singleton
 			$b->tables();
 		}
 
+		$totals = [];
+
 		// Start fetching aggregates data
 		if(true){
-			$this->getCategories();
-			$this->getProvinces();
-			$this->getSuburbs();
-			$this->getCities();
+			$totals['property_types'] = $this->getCategories();
+			$totals['provinces'] = $this->getProvinces();
+			$totals['suburbs_of_those_provinces'] = $this->getSuburbs();
+			$totals['cities_of_those_provinces'] = $this->getCities();
 		}
 
 		// Start fetching property data
 		if(true){
-			$this->getProperties();
+			$totals['properties'] = $this->getProperties();
 		}
 
 		// Start fetching unit data
 		if(true){
-			$this->getUnits();
+			$totals['units_of_those_properties'] = $this->getUnits();
 		}
 
 		// Start fetching images
 		if(true){
-			$this->getImages();
+			$totals['images'] = $this->getImages();
 		}
 
-		// Start fetching images
-		if(true){
+		// Start matching brokers to properties
+		if(false){
 			$this->getBrokers();
 		}
 
-		return true;
+		// Done
+		return $totals;
+	}
+
+	/**
+	 * Do a patial merge with Gmaven
+	 */
+	public function partial()
+	{
+		$lastSyncDate = strtotime("-1 days");
+
+		// Start fetching property data
+		if(true){
+			$totals['properties'] = $this->getProperties($lastSyncDate);
+		}
+
+		// Start fetching unit data
+		if(true){
+			$totals['units'] = $this->getUnits($lastSyncDate);
+		}
+
+		// Start fetching images
+		if(true){
+			$totals['images'] = $this->getImages($lastSyncDate);
+		}
+
+		// Done
+		return [
+			'time'   => (time() - $this->time) . ' seconds',
+			'totals' => $totals,
+		];
 	}
 
 	/**
@@ -120,8 +150,11 @@ class Gmv extends Arc\Singleton
 		// Gather data
 		$data = array_filter($r->aggregates->{'basic.primaryCategory$$distinct'});
 
+		// Find total
+		$t = count($data);
+
 		// Progress bar
-		$progress = $this->cli->progress()->total(count($data));
+		$progress = $this->cli->progress()->total($t);
 
 		// Insert
 		$db = Db::forge($this->get_config());
@@ -130,6 +163,9 @@ class Gmv extends Arc\Singleton
 			$db->query("INSERT INTO `#gmaven_categories` (`category`, `updated_at`) VALUES('".addslashes($category)."', ".$this->time.")")->exec();
 			$progress->current($i);
 		}
+
+		// Return total
+		return $t;
 	}
 
 	/**
@@ -258,24 +294,29 @@ class Gmv extends Arc\Singleton
 	 * properties are displayed (e.g. ones that're missing critical location or price information) which would account for this 
 	 * difference.
 	 *
-	 * @return Boolean
+	 * @param Date of when to start syncing
+	 *
+	 * @return Int Total
 	 */
-	private function getProperties()
+	private function getProperties($fromWhen = false)
 	{
+		$query = [];
+		$from = [];
+
+		if($fromWhen){
+			$from = [
+				"_updated" => ["\$gte" => $fromWhen]
+			];
+		}
+
 		// Call Gmaven to get total properties including archived ones
 		$r = $this->post('data/default/property/search', [
 			'sourceFields' => ['id'],
-			'query'	       => [
-				//'id' => ["\$eq" => "23a72c37-b3f2-4728-8ac1-b0458f136fb2"],
-				//'isArchived'	=> [
-				//	"\$in" => ["\$null", "false"]
-				//]
-			],
+			'query'	       => $query + $from,
 			'page'	       => ['number' => 1, 'size' => 1]
 		]);
+		
 		$t = $r->md->totalResults;
-
-		//print "<pre>"; print_r($r); print "</pre>"; die();
 
 		// Info
 		$this->cli->green('Fetching '.$t.' properties.');
@@ -305,10 +346,7 @@ class Gmv extends Arc\Singleton
 				'sales.askingPrice',
 				'sales.valueM2'
 			],
-			'query' => [
-				//'id'	        => ["\$eq" => "a35cb430-4594-4cb1-968f-dbeb66da4b9f"],
-				//'isArchived'	=> ["\$in" => ["\$null", "false"]]
-			],
+			'query' => $query + $from,
 			'page'	=> ['number' => 1, 'size' => $t]
 		]);
 
@@ -318,12 +356,36 @@ class Gmv extends Arc\Singleton
 		// Forge database connection
 		$db = Db::forge($this->get_config());
 
-		// Clear out existing entries
-		$db->query("TRUNCATE TABLE `#gmaven_properties`")->exec();
-		$db->query("TRUNCATE TABLE `#gmaven_property_details`")->exec();
+		// Clear out existing entries when fetching everything
+		if($fromWhen == false){
+			$db->query("TRUNCATE TABLE `#gmaven_properties`")->exec();
+			$db->query("TRUNCATE TABLE `#gmaven_property_details`")->exec();
+		}
 
 		// Loop over results
 		foreach($r->list as $i => $p){
+
+			// Try find the entry
+			if($fromWhen){
+				if($exists = $db->query("SELECT `id` FROM `#gmaven_property_details` WHERE `gmv_id` = '".addslashes($p->id)."'")->get()){
+
+					// Find pid
+					$property = $db->query("SELECT `id` FROM `#gmaven_properties` WHERE `did` = ".$exists[0]['id'])->get();
+					$pid = $property[0]['id'];
+					$did = $exists[0]['id'];
+
+					// Delete property, property.details & property.units
+					$r = "
+						BEGIN;
+						DELETE FROM `#gmaven_properties` WHERE id = ".$pid.";
+						DELETE FROM `#gmaven_property_details` WHERE did = ".$did.";
+						DELETE FROM `#gmaven_units` WHERE pid = ".$pid.";
+						COMMIT;
+					";
+
+					$db->query($r)->exec();
+				}
+			}
 
 			// Find province, city, suburb and category id
 			$catId	= $db->query("SELECT `id` FROM `#gmaven_categories` WHERE `category`	= '".(addslashes($p->basic->primaryCategory))."'")->get_one('id');
@@ -360,7 +422,7 @@ class Gmv extends Arc\Singleton
 	        ".$cid.",
 	        ".$sid.",
 	        ".$this->time.",
-	        ".$p->_updated."
+	        ".floor($p->_updated)."
 	      );
 
 	      COMMIT;
@@ -370,22 +432,37 @@ class Gmv extends Arc\Singleton
 			$db->query($q)->exec();
 
 			// Update progress bar
-			$progress->current($i);
+			$progress->current($i+1);
 		}
 
 		// Done
-		return true;
+		return $t;
 	}
 
 	/**
-	 * 
+	 * Fetch units of properties
+	 *
+	 * @param Int Timestamp of when to start syncing from
 	 */
-	public function getUnits()
+	public function getUnits($fromWhen = false)
 	{
+		$query = [
+			'isArchived' => [
+				"\$in" => ["\$null", "false"]
+			]
+		];
+		$from = [];
+
+		if($fromWhen){
+			$from = [
+				"_updated" => ["\$gte" => $fromWhen]
+			];
+		}
+
 		// Call Gmaven to get total properties
 		$r = $this->post('data/custom/propertyUnit/search', [
 			'sourceFields' => ['id'],
-			'query'	       => ['isArchived' => ["\$in" => ["\$null", "false"]]],
+			'query'	       => $query + $from,
 			'page'	       => ['number' => 1, 'size' => 1]
 		]);
 		$t = $r->md->totalResults;
@@ -413,10 +490,7 @@ class Gmv extends Arc\Singleton
 				'vacancy.sales.description',
 				'vacancy.unitManagement.status'
 			],
-			'query'	=> [
-				//"propertyId" => ["\$eq"   => 'a35cb430-4594-4cb1-968f-dbeb66da4b9f'],
-				'isArchived' => ["\$in" => ["\$null", "false"]]
-			],
+			'query' => $query + $from,
 			'page'	=> ['number' => 1, 'size' => $t]
 		]);
 
@@ -429,7 +503,9 @@ class Gmv extends Arc\Singleton
 		$db = Db::forge($this->get_config());
 
 		// Clear out existing entries
-		$db->query("TRUNCATE TABLE `#gmaven_units`")->exec();
+		if($fromWhen == false){
+			$db->query("TRUNCATE TABLE `#gmaven_units`")->exec();
+		}
 
 		// Loop over results
 		foreach($r->list as $i => $u){
@@ -478,8 +554,10 @@ class Gmv extends Arc\Singleton
 			}
 
 			// Update progress bar
-			$progress->current($i);
+			$progress->current($i+1);
 		}
+
+		return $t;
 	}
 
 	/**
@@ -489,7 +567,7 @@ class Gmv extends Arc\Singleton
 	{
 		// Call Gmaven to get total properties
 		$r = $this->post('data/content/entity/property/search', [
-			'contentCategory' 	=> 'Image'
+			'contentCategory' 	=> 'Image',
 		]);
 		$t = count($r->list);
 
@@ -527,6 +605,8 @@ class Gmv extends Arc\Singleton
 			// Update progress bar
 			$progress->current($i);
 		}
+
+		return $t;
 	}
 
 	/**
@@ -536,8 +616,6 @@ class Gmv extends Arc\Singleton
 	{
 		// Gather team
 		$team = $this->get('cre/user/team/current/user');
-
-		//print "<pre>"; print_r($team); print "</pre>"; die();
 
 		// Forge database connection
 		$db = Db::forge($this->get_config());

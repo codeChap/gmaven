@@ -104,10 +104,12 @@ class Gmv extends Arc\Singleton
 
 	/**
 	 * Do a patial merge with Gmaven
+	 *
+	 * @param Int Number of hours in the past to sync bt
 	 */
-	public function partial()
+	public function partial($hours = 2)
 	{
-		$lastSyncDate = strtotime("-1 days");
+		$lastSyncDate = strtotime("-".$hours." hours");
 
 		// Start fetching property data
 		if(true){

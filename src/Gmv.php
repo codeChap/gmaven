@@ -94,12 +94,15 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start matching brokers to properties
-		if(false){
+		if(true){
 			$this->getBrokers();
 		}
 
 		// Done
-		return $totals;
+		return [
+			'time'   => ceil((time()-$this->time) / 60) . ' minutes.',
+			'totals' => $totals,
+		];
 	}
 
 	/**
@@ -136,7 +139,7 @@ class Gmv extends Arc\Singleton
 
 		// Done
 		return [
-			'time'   => (time() - $this->time) . ' seconds',
+			'time'   => ceil(time()-$this->time) . ' seconds.',
 			'totals' => $totals,
 		];
 	}

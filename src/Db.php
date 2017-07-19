@@ -22,10 +22,10 @@ class Db extends Arc\Singleton
 	{
 		// Create database connection
 		$this->db = new \PDO("mysql:host=".$config['host'].";dbname=".$config['base'], $config['user'], $config['pass']);
-	  $this->db->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
+		$this->db->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
-	  // Call parent constructor
-	  parent::__construct($config);
+		// Call parent constructor
+		parent::__construct($config);
 	}
 
 	/**
@@ -45,9 +45,9 @@ class Db extends Arc\Singleton
 		try {
 			$r = $this->db->exec($this->q);
 		}
-	  catch(\PDOException $e){
-	    throw new \Exception($e->getMessage());
-	  }
+		catch(\PDOException $e){
+			throw new \Exception($e->getMessage());
+		}
 	}
 
 	/**
@@ -57,7 +57,7 @@ class Db extends Arc\Singleton
 	{
 		try {
 
-	    // Prepare and fetch all
+			// Prepare and fetch all
 			$p = $this->db->prepare($this->q);
 			$p->execute();
 			$r = $p->fetchAll();
@@ -78,9 +78,9 @@ class Db extends Arc\Singleton
 				return false;
 			}
 		}
-	  catch(\PDOException $e){
-	    throw new \Exception($e->getMessage());
-	  }
+		catch(\PDOException $e){
+			throw new \Exception($e->getMessage());
+		}
 	}
 
 	/**
@@ -90,7 +90,7 @@ class Db extends Arc\Singleton
 	{
 		try {
 
-	    // Prepare and fetch all
+			// Prepare and fetch all
 			$p = $this->db->prepare($this->q);
 			$p->execute();
 			$r = $p->fetchAll();
@@ -103,9 +103,9 @@ class Db extends Arc\Singleton
 				return $default;
 			}
 		}
-	  catch(\PDOException $e){
-	    throw new \Exception($e->getMessage());
-	  }
+		catch(\PDOException $e){
+			throw new \Exception($e->getMessage());
+		}
 	}
 
 	/**

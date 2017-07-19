@@ -95,7 +95,9 @@ class Gmv extends Arc\Singleton
 	/**
 	 * Do a patial merge with Gmaven
 	 *
-	 * @param Int Number of hours in the past to sync bt
+	 * @param Int Number of hours in the past to sync by. Your cronjob should then update by this number so every 2 hours by default
+	 *
+	 * @return Int Total
 	 */
 	public function partial($hours = 2)
 	{
@@ -133,6 +135,8 @@ class Gmv extends Arc\Singleton
 
 	/**
 	 * Get all categories
+	 *
+	 * @return Int Total
 	 */
 	private function getCategories()
 	{
@@ -170,6 +174,8 @@ class Gmv extends Arc\Singleton
 
 	/**
 	 * Get all provinces
+	 *
+	 * @return Int Total
 	 */
 	private function getProvinces()
 	{
@@ -201,10 +207,15 @@ class Gmv extends Arc\Singleton
 				$progress->advance();
 			}
 		}
+
+		// Return total
+		return $t;
 	}
 
 	/**
 	 * Get all suburbs
+	 *
+	 * @return Int Total
 	 */
 	private function getSuburbs()
 	{
@@ -216,6 +227,9 @@ class Gmv extends Arc\Singleton
 
 		// We need a list of property ids
 		$provinces = $db->query("SELECT `id`, `province` FROM `#gmaven_provinces`")->get();
+
+		// Count
+		$tt = [];
 
 		// Call Gmaven on each province
 		foreach($provinces as $p){
@@ -239,6 +253,7 @@ class Gmv extends Arc\Singleton
 			// Gather data
 			$data = array_filter($r->aggregates->{'basic.suburb$$distinct'});
 			$t = count($data);
+			$tt[] = $t;
 
 			if($t){
 
@@ -262,10 +277,20 @@ class Gmv extends Arc\Singleton
 				}
 			}
 		}
+
+		// Return totals
+		if(count($tt)){
+			return array_sum($tt);
+		}
+		else{
+			return 0;
+		}
 	}
 
 	/**
 	 * Get all cities
+	 *
+	 * @return Int Total
 	 */
 	private function getCities()
 	{
@@ -297,6 +322,9 @@ class Gmv extends Arc\Singleton
 				$progress->advance();
 			}
 		}
+
+		// Return total
+		return $t;
 	}
 
 	/**
@@ -408,44 +436,41 @@ class Gmv extends Arc\Singleton
 			}
 
 			// Find province, city, suburb and category id
-			$catId	= $db->query("SELECT `id` FROM `#gmaven_categories` WHERE `category`	= '".(addslashes($p->basic->primaryCategory))."'")->get_one('id');
-			$pid	  = $db->query("SELECT `id` FROM `#gmaven_provinces` WHERE `province`	  = '".(addslashes($p->basic->province))."'")->get_one('id');
-			$cid	  = $db->query("SELECT `id` FROM `#gmaven_cities` WHERE `city`	        = '".(addslashes($p->basic->city))."'")->get_one('id');
-			$sid	  = $db->query("SELECT `id` FROM `#gmaven_suburbs` WHERE `suburb`	      = '".(addslashes($p->basic->suburb))."'")->get_one('id');
+			$catId = $db->query("SELECT `id` FROM `#gmaven_categories` WHERE `category` = '".(addslashes($p->basic->primaryCategory))."'")->get_one('id');
+			$pid   = $db->query("SELECT `id` FROM `#gmaven_provinces` WHERE `province`  = '".(addslashes($p->basic->province))."'")->get_one('id');
+			$cid   = $db->query("SELECT `id` FROM `#gmaven_cities` WHERE `city`         = '".(addslashes($p->basic->city))."'")->get_one('id');
+			$sid   = $db->query("SELECT `id` FROM `#gmaven_suburbs` WHERE `suburb`      = '".(addslashes($p->basic->suburb))."'")->get_one('id');
 
 			// Insert data
 			$q = "
-	      BEGIN;
-
-	      INSERT INTO `#gmaven_property_details`
-	      (`gmv_id`, `name`, `customReferenceId`, `displayAddress`, `marketingBlurb`)
-	      VALUES (
-	        '".addslashes($p->id)."',
-	        '".addslashes($p->basic->name)."',
-	        '".(isset($p->basic->customReferenceId)	  ? addslashes($p->basic->customReferenceId)	: 'NULL')."',
-	        '".(isset($p->basic->displayAddress)	    ? addslashes($p->basic->displayAddress)	    : 'NULL')."',
-	        '".(isset($p->basic->marketingBlurb)	    ? addslashes($p->basic->marketingBlurb)	    : 'NULL')."'
-	      );
-
-	      INSERT INTO `#gmaven_properties`
-	      (`did`, `lon`, `lat`, `gla`, `currentVacantArea`, `weightedAskingRental`, `for_sale`, `category_id`, `province_id`, `city_id`, `suburb_id` ,`updated_at`, `gmv_updated`)
-	      VALUES (
-	      LAST_INSERT_ID(),
-	        ".($p->geo->lon	== 0 ? 'NULL' : $p->geo->lon).",
-	        ".($p->geo->lat	== 0 ? 'NULL' : $p->geo->lat).",
-	        ".(!empty($p->basic->gla)	                    ? $p->basic->gla	                  : 0).",
-	        ".(!empty($p->vacancy->currentVacantArea)	    ? $p->vacancy->currentVacantArea	  : 0).",
-	        ".(!empty($p->vacancy->weightedAskingRental)	? $p->vacancy->weightedAskingRental	: 'NULL').",
-	        ".(!empty($p->basic->forSale)	                ? $p->basic->forSale	              : 0).",
-	        ".$catId.",
-	        ".$pid.",
-	        ".$cid.",
-	        ".$sid.",
-	        ".$this->time.",
-	        ".floor($p->_updated)."
-	      );
-
-	      COMMIT;
+				BEGIN;
+				INSERT INTO `#gmaven_property_details`
+				(`gmv_id`, `name`, `customReferenceId`, `displayAddress`, `marketingBlurb`)
+				VALUES (
+				 '".addslashes($p->id)."',
+				 '".addslashes($p->basic->name)."',
+				 '".(isset($p->basic->customReferenceId)	  ? addslashes($p->basic->customReferenceId)	: 'NULL')."',
+				 '".(isset($p->basic->displayAddress)	    ? addslashes($p->basic->displayAddress)	    : 'NULL')."',
+				 '".(isset($p->basic->marketingBlurb)	    ? addslashes($p->basic->marketingBlurb)	    : 'NULL')."'
+				);
+				INSERT INTO `#gmaven_properties`
+				(`did`, `lon`, `lat`, `gla`, `currentVacantArea`, `weightedAskingRental`, `for_sale`, `category_id`, `province_id`, `city_id`, `suburb_id` ,`updated_at`, `gmv_updated`)
+				VALUES (
+				 LAST_INSERT_ID(),
+				 ".($p->geo->lon == 0 ? 'NULL' : $p->geo->lon).",
+				 ".($p->geo->lat == 0 ? 'NULL' : $p->geo->lat).",
+				 ".(!empty($p->basic->gla)                    ? $p->basic->gla                    : 0).",
+				 ".(!empty($p->vacancy->currentVacantArea)    ? $p->vacancy->currentVacantArea    : 0).",
+				 ".(!empty($p->vacancy->weightedAskingRental) ? $p->vacancy->weightedAskingRental : 'NULL').",
+				 ".(!empty($p->basic->forSale)                ? $p->basic->forSale                : 0).",
+				 ".$catId.",
+				 ".$pid.",
+				 ".$cid.",
+				 ".$sid.",
+				 ".$this->time.",
+				 ".floor($p->_updated)."
+				);
+				COMMIT;
 			";
 
 			// Insert
@@ -486,8 +511,8 @@ class Gmv extends Arc\Singleton
 		// Call Gmaven to get total properties
 		$r = $this->post('data/custom/propertyUnit/search', [
 			'sourceFields' => ['id'],
-			'query'	       => $query + $from,
-			'page'	       => ['number' => 1, 'size' => 1]
+			'query'        => $query + $from,
+			'page'         => ['number' => 1, 'size' => 1]
 		]);
 		$t = $r->md->totalResults;
 
@@ -523,8 +548,6 @@ class Gmv extends Arc\Singleton
 			'page'	=> ['number' => 1, 'size' => $t]
 		]);
 
-		//print "<pre>"; print_r($r); print "</pre>"; return;
-
 		// Progress bar
 		$progress = $this->cli->progress()->total($t);
 
@@ -556,24 +579,24 @@ class Gmv extends Arc\Singleton
 
 				// Insert data
 				$q = "
-		      INSERT INTO `#gmaven_units`
-		      (`pid`, `category_id`, `gla`, `gmr`,`availableFrom`, `propertyId`, `gmv_id`, `unitId`, `customReferenceId`, `availableType`, `marketingHeading`, `description`, `updated_at`, `gmv_updated`)
-		      VALUES (
-		        ".$pid.",
-		        ".$catId.",
-		        ".(isset($u->unitDetails->gla)	                  ? $u->unitDetails->gla : 0).",
-		        ".(isset($u->vacancy->unitDetails->gmr)	          ? $u->vacancy->unitDetails->gmr : 0).",
-		        ".(isset($u->vacancy->marketing->availableFrom)	  ? $u->vacancy->marketing->availableFrom	            : 'NULL').",
-		        '".$propertyId."',
-		        '".addslashes($u->id)."',
-		        '".(isset($u->unitDetails->unitId)	              ? addslashes($u->unitDetails->unitId)	              : 'NULL')."',
-		        '".(isset($u->unitDetails->customReferenceId)	    ? addslashes($u->unitDetails->customReferenceId)	  : 'NULL')."',
-		        '".(isset($u->vacancy->marketing->availableType)	? addslashes($u->vacancy->marketing->availableType) : 'NULL')."',
-		        '".(isset($u->vacancy->sales->marketingHeading)	  ? addslashes($u->vacancy->sales->marketingHeading)	: 'NULL')."',
-		        '".(isset($u->vacancy->sales->description)	      ? addslashes($u->vacancy->sales->description)	      : 'NULL')."',
-		        ".$this->time.",
-		        ".$u->_updated."
-		      );
+				INSERT INTO `#gmaven_units`
+				(`pid`, `category_id`, `gla`, `gmr`,`availableFrom`, `propertyId`, `gmv_id`, `unitId`, `customReferenceId`, `availableType`, `marketingHeading`, `description`, `updated_at`, `gmv_updated`)
+				VALUES (
+				 ".$pid.",
+				 ".$catId.",
+				 ".(isset($u->unitDetails->gla)                   ? $u->unitDetails->gla : 0).",
+				 ".(isset($u->vacancy->unitDetails->gmr)          ? $u->vacancy->unitDetails->gmr : 0).",
+				 ".(isset($u->vacancy->marketing->availableFrom)  ? $u->vacancy->marketing->availableFrom            : 'NULL').",
+				 '".$propertyId."',
+				 '".addslashes($u->id)."',
+				 '".(isset($u->unitDetails->unitId)	              ? addslashes($u->unitDetails->unitId)               : 'NULL')."',
+				 '".(isset($u->unitDetails->customReferenceId)    ? addslashes($u->unitDetails->customReferenceId)    : 'NULL')."',
+				 '".(isset($u->vacancy->marketing->availableType) ? addslashes($u->vacancy->marketing->availableType) : 'NULL')."',
+				 '".(isset($u->vacancy->sales->marketingHeading)  ? addslashes($u->vacancy->sales->marketingHeading)  : 'NULL')."',
+				 '".(isset($u->vacancy->sales->description)       ? addslashes($u->vacancy->sales->description)       : 'NULL')."',
+				 ".$this->time.",
+				 ".$u->_updated."
+				);
 				";
 
 				//print $q; die();
@@ -586,11 +609,12 @@ class Gmv extends Arc\Singleton
 			$progress->advance();
 		}
 
+		// Return totals
 		return $t;
 	}
 
 	/**
-	 * 
+	 * Match images to properties
 	 */
 	public function getImages()
 	{
@@ -622,15 +646,15 @@ class Gmv extends Arc\Singleton
 
 			// Insert data
 			$q = "
-	      INSERT INTO `#gmaven_images`
-	      (`entityDomainKey`, `contentDomainKey`, `rating`, `updated_at`, `gmv_updated`)
-	      VALUES (
-	        '".$img->entityDomainKey."',
-	        '".$img->contentDomainKey."',
-	        ".( isset($img->metadata->Rating) ? $img->metadata->Rating : 0 ).",
-	        ".$this->time.",
-	        ".$img->updated."
-	      );
+			INSERT INTO `#gmaven_images`
+			(`entityDomainKey`, `contentDomainKey`, `rating`, `updated_at`, `gmv_updated`)
+			VALUES (
+			 '".$img->entityDomainKey."',
+			 '".$img->contentDomainKey."',
+			 ".( isset($img->metadata->Rating) ? $img->metadata->Rating : 0 ).",
+			 ".$this->time.",
+			 ".$img->updated."
+			);
 			";
 
 			// Insert
@@ -645,7 +669,7 @@ class Gmv extends Arc\Singleton
 	}
 
 	/**
-	 * 
+	 * Match brokers to properties
 	 */
 	public function getBrokers()
 	{
@@ -711,11 +735,11 @@ class Gmv extends Arc\Singleton
 			INSERT INTO `#gmaven_brokers`
 			(`gmv_id`, `name`, `tel`, `email`, `updated_at`)
 			VALUES (
-			  '".$member->_id."',
-			  '".$member->name."',
-			  '".$member->tel."',
-			  '".$member->email."',
-			  ".$this->time."
+			 '".$member->_id."',
+			 '".$member->name."',
+			 '".$member->tel."',
+			 '".$member->email."',
+			 ".$this->time."
 			);
 			";
 			$db->query($q)->exec();
@@ -740,23 +764,14 @@ class Gmv extends Arc\Singleton
 			'base_uri' => 'https://www.gmaven.com/api/'
 		];
 
-		// Go guzzle
-		//try{
-			// Setup Guzzle
-			$client = new \GuzzleHttp\Client($clientDataArray);
-			$response = $client->request('get', $endPoint, [
-				'headers' => [
-					'gmaven.apiKey' => $this->get_config('key'),
-					'Content-Type'  => 'application/json'
-				]
-			]);
-		//}
-		//catch(\GuzzleHttp\Exception\ClientException $e){
-		//	$this->handleError($e);
-		//}
-		//catch(\GuzzleHttp\Exception\ServerException $e){
-		//	$this->handleError($e);
-		//}
+		// Setup Guzzle
+		$client = new \GuzzleHttp\Client($clientDataArray);
+		$response = $client->request('get', $endPoint, [
+			'headers' => [
+				'gmaven.apiKey' => $this->get_config('key'),
+				'Content-Type'  => 'application/json'
+			]
+		]);
 
 		// Return response data
 		return $this->getResponse($response); 
@@ -781,23 +796,14 @@ class Gmv extends Arc\Singleton
 			'json'     => $postFields
 		];
 
-		// Go guzzle
-		//try{
-			// Setup Guzzle
-			$client = new \GuzzleHttp\Client($clientDataArray);
-			$response = $client->request('post', $endPoint, [
-				'headers' => [
-					'gmaven.apiKey' => $this->get_config('key'),
-					'Content-Type'  => 'application/json'
-				]
-			]);
-		//}
-		//catch(\GuzzleHttp\Exception\ClientException $e){
-		//	$this->handleError($e);
-		//}
-		//catch(\GuzzleHttp\Exception\ServerException $e){
-		//	$this->handleError($e);
-		//}
+		// Setup Guzzle
+		$client = new \GuzzleHttp\Client($clientDataArray);
+		$response = $client->request('post', $endPoint, [
+			'headers' => [
+				'gmaven.apiKey' => $this->get_config('key'),
+				'Content-Type'  => 'application/json'
+			]
+		]);
 
 		// Return response data
 		return $this->getResponse($response); 
@@ -836,23 +842,23 @@ class Gmv extends Arc\Singleton
 
 			// Something went wrong
 			switch($s){
-	      // Images that dont exist return false
-	      case '404' : return false; break;
-	      // Key is probably wrong
-	      case '403' : $this->cli->error("No permission"); break;
-	      // Where did Gmaven go?
-	      case '502' : $this->cli->error("Bad Gateway"); break;
-	      // Where did Gmaven go?
-	      case '503' : $this->cli->error("Gmaven service is unavailable or overloaded, please try again later."); break;
-	      case '500' : $this->cli->error("Gmaven service error."); break;
-	      // Something else went wrong
-	      default : $this->cli->error($r);
-	    }
+				// Images that dont exist return false
+				case '404' : return false; break;
+				// Key is probably wrong
+				case '403' : $this->cli->error("No permission"); break;
+				// Where did Gmaven go?
+				case '502' : $this->cli->error("Bad Gateway"); break;
+				// Where did Gmaven go?
+				case '503' : $this->cli->error("Gmaven service is unavailable or overloaded, please try again later."); break;
+				case '500' : $this->cli->error("Gmaven service error."); break;
+				// Something else went wrong
+				default : $this->cli->error($r);
+			}
 		}
 	}
 
 	/**
-	 * Log and show errors
+	 * Log and show errors @todo
 	 */
 	private function handleError($e){
 		return false;

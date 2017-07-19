@@ -721,7 +721,12 @@ class Gmv extends Arc\Singleton
 	}
 
 	/**
-	 * 
+	 * Inserts a new broker and matches new or existing brokers to a property
+	 *
+	 * @param Object The member from a tram object
+	 * @param Array Property array to assign the broker to
+	 *
+	 * @return void
 	 */
 	public function brokerInset($member, $p)
 	{
@@ -743,6 +748,9 @@ class Gmv extends Arc\Singleton
 			 ".$this->time."
 			);
 			";
+
+			$this->cli->blue($q);
+
 			$db->query($q)->exec();
 		}
 

@@ -164,7 +164,7 @@ class Build extends Arc\Singleton
 					CREATE TABLE `".$table."`(
 					 `id` INT(11) AUTO_INCREMENT PRIMARY KEY,
 					 `gmv_id`     VARCHAR(90) NOT NULL,
-					 `name`       VARCHAR(90) NOT NULL,
+					 `name`       VARCHAR(90),
 					 `tel`        VARCHAR(90),
 					 `email`      VARCHAR(90),
 					 `updated_at` INT(11) NOT NULL

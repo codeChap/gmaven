@@ -872,5 +872,24 @@ class Gmv extends Arc\Singleton
 	private function handleError($e){
 		return false;
 	}
+
+	/**
+	 * Just usefull for testing
+	 */
+	public function call($endpoint, $fields = [])
+	{
+		$method = count($fields) ? 'POST' : 'GET';
+
+		switch($method){
+			case 'GET' :
+				$r = $this->get($endpoint);
+			break;
+			case 'POST' :
+				$r = $this->post($endpoint, $fields);
+			break;
+		}
+
+		return $r;
+	}
 }
 ?>

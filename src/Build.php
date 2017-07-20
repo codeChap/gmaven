@@ -80,20 +80,20 @@ class Build extends Arc\Singleton
 			if( ! in_array($table, $r) ){
 				$q = "
 					CREATE TABLE `".$table."`(
-					 `id`                     INT(11) AUTO_INCREMENT PRIMARY KEY,
+					 `id`                   INT(11) AUTO_INCREMENT PRIMARY KEY,
 					 `did`                  INT(11) NOT NULL COMMENT 'Details ID',
 					 `bid`                  INT(11) DEFAULT 0 COMMENT 'Broker ID',
 					 `lon`                  DECIMAL(9,6) DEFAULT NULL,
 					 `lat`                  DECIMAL(9,6) DEFAULT NULL,
 					 `gla`                  INT(9) DEFAULT 0,
-					 `currentVacantArea`      INT(9) DEFAULT 0,
+					 `currentVacantArea`    INT(9) DEFAULT 0,
 					 `weightedAskingRental` FLOAT(9,9) DEFAULT NULL,
 					 `for_sale`             TINYINT(1) DEFAULT 0,
 					 `category_id`          INT(11) DEFAULT 0,
 					 `province_id`          INT(11) DEFAULT 0,
 					 `city_id`              INT(11) DEFAULT 0,
-					 `suburb_id`              INT(11) DEFAULT 0,
-					 `updated_at`             INT(11) NOT NULL,
+					 `suburb_id`            INT(11) DEFAULT 0,
+					 `updated_at`           INT(11) NOT NULL,
 					 `gmv_updated`          FLOAT(11,4) NOT NULL
 					)
 				";

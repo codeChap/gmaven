@@ -12,8 +12,8 @@ class fullTest extends TestCase
 
 		$g = \CodeChap\Gmv\Gmv::forge([
 			'key'  => $config['key'],
-			'host' => 'localhost',
-			'user' => 'website',
+			'host' => '127.0.0.1',
+			'user' => 'root',
 			'pass' => 'Friday24a4',
 			'base' => 'dev_jhi',
 			'pfx'  => 'jhi_'

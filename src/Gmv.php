@@ -50,7 +50,7 @@ class Gmv extends Arc\Singleton
 	public function Sync()
 	{
 		// Build required tables
-		if(true){
+		if(false){
 			$b = new Build($this->get_config());
 			$b->tables();
 		}
@@ -58,7 +58,7 @@ class Gmv extends Arc\Singleton
 		$totals = [];
 
 		// Start fetching aggregates data
-		if(true){
+		if(false){
 			$totals['property_types'] = $this->getCategories();
 			$totals['provinces'] = $this->getProvinces();
 			$totals['suburbs_of_those_provinces'] = $this->getSuburbs();
@@ -66,7 +66,7 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching property data
-		if(true){
+		if(false){
 			$totals['properties'] = $this->getProperties();
 		}
 
@@ -76,12 +76,12 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching images
-		if(true){
+		if(false){
 			$totals['images'] = $this->getImages();
 		}
 
 		// Start matching brokers to properties
-		if(true){
+		if(false){
 			$this->getBrokers();
 		}
 
@@ -563,10 +563,10 @@ class Gmv extends Arc\Singleton
 		// Loop over results
 		foreach($r->list as $i => $u){
 
-			if(isset($u->propertyId) and !empty($u->propertyId) ){
+			$pid = 0;
+			$catId = 0;
 
-				$pid = 0;
-				$catId = 0;
+			if(isset($u->propertyId) and !empty($u->propertyId) ){
 
 				// Find category id
 				if(isset($u->unitDetails->primaryCategory) and $catgoryId = addslashes($u->unitDetails->primaryCategory)){
@@ -575,7 +575,15 @@ class Gmv extends Arc\Singleton
 
 				// Find Property id
 				if(isset($u->propertyId) and $propertyId = addslashes($u->propertyId)){
-					$pid = $db->query("SELECT `id` FROM `#gmaven_property_details` WHERE `gmv_id` = '".$propertyId."'")->get_one('id');
+					$pid = $db->query("
+						SELECT P.`id` FROM `#gmaven_property_details` D
+						LEFT JOIN `#gmaven_properties` P ON P.`did` = D.`id`
+						WHERE `gmv_id` = '".$propertyId."'"
+					)->get_one('id');
+
+					if(empty($pid)){
+						$pid = 0;
+					}
 				}
 
 				// Insert data
@@ -600,7 +608,7 @@ class Gmv extends Arc\Singleton
 				);
 				";
 
-				//print $q;
+				print $q;
 
 				// Insert
 				$db->query($q)->exec();

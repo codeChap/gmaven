@@ -87,7 +87,7 @@ class Build extends Arc\Singleton
 					 `lat`                  DECIMAL(9,6) DEFAULT NULL,
 					 `gla`                  INT(9) DEFAULT 0,
 					 `currentVacantArea`    INT(9) DEFAULT 0,
-					 `weightedAskingRental` FLOAT(9,9) DEFAULT NULL,
+					 `weightedAskingRental` FLOAT(9,9) DEFAULT 0.000000,
 					 `for_sale`             TINYINT(1) DEFAULT 0,
 					 `category_id`          INT(11) DEFAULT 0,
 					 `province_id`          INT(11) DEFAULT 0,

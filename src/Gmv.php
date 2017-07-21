@@ -374,7 +374,6 @@ class Gmv extends Arc\Singleton
 			'sourceFields' => [
 				'id',
 				'_updated',
-				'isArchived',
 				'basic.name',
 				'basic.province',
 				'basic.suburb',
@@ -453,16 +452,15 @@ class Gmv extends Arc\Singleton
 			 ".((isset($p->basic->displayAddress) and !empty($p->basic->displayAddress))        ? "'".addslashes($p->basic->displayAddress)."'"    : 'NULL').",
 			 ".((isset($p->basic->marketingBlurb) and !empty($p->basic->marketingBlurb))        ? "'".addslashes($p->basic->marketingBlurb)."'"    : 'NULL')."
 			);
-
 			INSERT INTO `#gmaven_properties`
 			(`did`, `lon`, `lat`, `gla`, `currentVacantArea`, `weightedAskingRental`, `for_sale`, `category_id`, `province_id`, `city_id`, `suburb_id` ,`updated_at`, `gmv_updated`)
 			VALUES (
 			 LAST_INSERT_ID(),
-			 ".($p->geo->lon	== 0 ? 'NULL' : $p->geo->lon).",
-			 ".($p->geo->lat	== 0 ? 'NULL' : $p->geo->lat).",
+			 ".($p->geo->lon == 0 ? 'NULL' : $p->geo->lon).",
+			 ".($p->geo->lat == 0 ? 'NULL' : $p->geo->lat).",
 			 ".(!empty($p->basic->gla)                    ? $p->basic->gla                    : 0).",
 			 ".(!empty($p->vacancy->currentVacantArea)    ? $p->vacancy->currentVacantArea    : 0).",
-			 ".(!empty($p->vacancy->weightedAskingRental) ? $p->vacancy->weightedAskingRental : NULL).",
+			 ".(!empty($p->vacancy->weightedAskingRental) ? $p->vacancy->weightedAskingRental : 0).",
 			 ".(!empty($p->basic->forSale)                ? $p->basic->forSale                : 0).",
 			 ".$catId.",
 			 ".$pid.",
@@ -473,6 +471,8 @@ class Gmv extends Arc\Singleton
 			);
 			COMMIT;
 			";
+
+			// @todo Do a check and make sure the number of details entries match the number of properties
 
 			// Insert
 			$db->query($q)->exec();

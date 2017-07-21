@@ -50,7 +50,7 @@ class Gmv extends Arc\Singleton
 	public function Sync()
 	{
 		// Build required tables
-		if(false){
+		if(true){
 			$b = new Build($this->get_config());
 			$b->tables();
 		}
@@ -58,7 +58,7 @@ class Gmv extends Arc\Singleton
 		$totals = [];
 
 		// Start fetching aggregates data
-		if(false){
+		if(true){
 			$totals['property_types'] = $this->getCategories();
 			$totals['provinces'] = $this->getProvinces();
 			$totals['suburbs_of_those_provinces'] = $this->getSuburbs();
@@ -66,7 +66,7 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching property data
-		if(false){
+		if(true){
 			$totals['properties'] = $this->getProperties();
 		}
 
@@ -76,12 +76,12 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching images
-		if(false){
+		if(true){
 			$totals['images'] = $this->getImages();
 		}
 
 		// Start matching brokers to properties
-		if(false){
+		if(true){
 			$this->getBrokers();
 		}
 
@@ -607,8 +607,6 @@ class Gmv extends Arc\Singleton
 				 ".$u->_updated."
 				);
 				";
-
-				print $q;
 
 				// Insert
 				$db->query($q)->exec();

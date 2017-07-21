@@ -755,7 +755,12 @@ class Gmv extends Arc\Singleton
 			);
 			";
 
-			$db->query($q)->exec();
+			try{
+				$db->query($q)->exec();
+			}
+			catch(\Exception  $e){
+				$this->cli->red($e->getMessage());
+			}
 		}
 
 		// Get broker id 

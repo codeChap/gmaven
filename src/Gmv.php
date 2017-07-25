@@ -59,25 +59,25 @@ class Gmv extends Arc\Singleton
 
 		// Start fetching aggregates data
 		if(true){
-			$totals['property_types'] = $this->getCategories();
-			$totals['provinces'] = $this->getProvinces();
-			$totals['suburbs_of_those_provinces'] = $this->getSuburbs();
-			$totals['cities_of_those_provinces'] = $this->getCities();
+			$totals['synchronized_property_types'] = $this->getCategories();
+			$totals['synchronized_provinces'] = $this->getProvinces();
+			$totals['synchronized_suburbs'] = $this->getSuburbs();
+			$totals['synchronized_cities'] = $this->getCities();
 		}
 
 		// Start fetching property data
 		if(true){
-			$totals['properties'] = $this->getProperties();
+			$totals['synchronized_properties'] = $this->getProperties();
 		}
 
 		// Start fetching unit data
 		if(true){
-			$totals['units_of_those_properties'] = $this->getUnits();
+			$totals['synchronized_units'] = $this->getUnits();
 		}
 
 		// Start fetching images
 		if(true){
-			$totals['images'] = $this->getImages();
+			$totals['synchronized_images'] = $this->getImages();
 		}
 
 		// Start matching brokers to properties
@@ -113,17 +113,17 @@ class Gmv extends Arc\Singleton
 
 		// Start fetching property data
 		if(false){
-			$totals['properties'] = $this->getProperties($lastSyncDate);
+			$totals['synchronized_properties'] = $this->getProperties($lastSyncDate);
 		}
 
 		// Start fetching unit data
 		if(true){
-			$totals['units_of_those_properties'] = $this->getUnits($lastSyncDate);
+			$totals['synchronized_units'] = $this->getUnits($lastSyncDate);
 		}
 
 		// Start fetching images
 		if(false){
-			$totals['images'] = $this->getImages($lastSyncDate);
+			$totals['synchronized_images'] = $this->getImages($lastSyncDate);
 		}
 
 		// Done
@@ -502,7 +502,7 @@ class Gmv extends Arc\Singleton
 			]
 		];
 
-		// Partial or full sync
+		// Partial or full sync @todo Remove, record a timestamp instead
 		if($fromWhen){
 			//$from = [
 			//	"_updated" => ["\$gte" => $fromWhen]
@@ -594,12 +594,13 @@ class Gmv extends Arc\Singleton
 				// Insert data
 				$q = "
 				INSERT INTO `#gmaven_units`
-				(`pid`, `category_id`, `gla`, `gmr`,`availableFrom`, `propertyId`, `gmv_id`, `unitId`, `customReferenceId`, `availableType`, `marketingHeading`, `description`, `updated_at`, `gmv_updated`)
+				(`pid`, `category_id`, `gla`, `gmr`, `netAskingRental`, `availableFrom`, `propertyId`, `gmv_id`, `unitId`, `customReferenceId`, `availableType`, `marketingHeading`, `description`, `updated_at`, `gmv_updated`)
 				VALUES (
 				 ".$pid.",
 				 ".$catId.",
-				 ".(isset($u->unitDetails->gla)                   ? $u->unitDetails->gla : 0).",
-				 ".(isset($u->vacancy->unitDetails->gmr)          ? $u->vacancy->unitDetails->gmr : 0).",
+				 ".(isset($u->unitDetails->gla)                      ? $u->unitDetails->gla : 0).",
+				 ".(isset($u->vacancy->unitDetails->gmr)             ? $u->vacancy->unitDetails->gmr : 0).",
+				 ".(isset($u->vacancy->unitDetails->netAskingRental) ? $u->vacancy->unitDetails->netAskingRental : 0).",
 				 ".(isset($u->vacancy->marketing->availableFrom)  ? $u->vacancy->marketing->availableFrom             : "'".NULL."'").",
 				 '".$propertyId."',
 				 '".addslashes($u->id)."',

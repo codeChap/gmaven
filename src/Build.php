@@ -130,6 +130,7 @@ class Build extends Arc\Singleton
 					 `category_id`        INT(11) DEFAULT 0,
 					 `gla`                INT(9) DEFAULT 0,
 					 `gmr`                INT(9) DEFAULT 0,
+					 `netAskingRental`    INT(9) DEFAULT 0,
 					 `availableType`      VARCHAR(90),
 					 `availableFrom`      FLOAT(11,4) DEFAULT 0,
 					 `marketingHeading`   VARCHAR(90),

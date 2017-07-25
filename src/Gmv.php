@@ -104,7 +104,7 @@ class Gmv extends Arc\Singleton
 		$lastSyncDate = strtotime("-".$hours." hours");
 
 		// Start fetching aggregates data
-		if(true){
+		if(false){
 			$totals['property_types'] = $this->getCategories();
 			$totals['provinces'] = $this->getProvinces();
 			$totals['suburbs_of_those_provinces'] = $this->getSuburbs();
@@ -112,7 +112,7 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching property data
-		if(true){
+		if(false){
 			$totals['properties'] = $this->getProperties($lastSyncDate);
 		}
 
@@ -122,7 +122,7 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching images
-		if(true){
+		if(false){
 			$totals['images'] = $this->getImages($lastSyncDate);
 		}
 
@@ -504,9 +504,9 @@ class Gmv extends Arc\Singleton
 
 		// Partial or full sync
 		if($fromWhen){
-			$from = [
-				"_updated" => ["\$gte" => $fromWhen]
-			];
+			//$from = [
+			//	"_updated" => ["\$gte" => $fromWhen]
+			//];
 		}
 
 		// Call Gmaven to get total properties
@@ -586,6 +586,11 @@ class Gmv extends Arc\Singleton
 					}
 				}
 
+				// Check for existing entry
+				if($eId = $db->query("SELECT `id` FROM `#gmaven_units` WHERE `gmv_id` = '".$u->id."'")->get_one('id')){
+					$db->query("DELETE FROM `#gmaven_units` WHERE `id` = ".$eId)->exec();
+				}
+
 				// Insert data
 				$q = "
 				INSERT INTO `#gmaven_units`
@@ -627,7 +632,7 @@ class Gmv extends Arc\Singleton
 	{
 		// Call Gmaven to get total properties
 		$r = $this->post('data/content/entity/property/search', [
-			'contentCategory' 	=> 'Image',
+			'contentCategory' => 'Image',
 		]);
 		$t = count($r->list);
 

@@ -6,7 +6,7 @@
  * @author     CodeChap
  * @license    MIT
  * @copyright  2017 CodeChap
- * 
+ *
  */
 
 namespace CodeChap\Gmv;
@@ -271,7 +271,7 @@ class Gmv extends Arc\Singleton
 							".$this->time."
 						)
 					")->exec();
-					
+
 					// Update progress
 					$progress->advance();
 				}
@@ -357,7 +357,7 @@ class Gmv extends Arc\Singleton
 			'query'        => $query + $from,
 			'page'         => ['number' => 1, 'size' => 1]
 		]);
-		
+
 		// Find total
 		$t = $r->md->totalResults;
 
@@ -719,10 +719,13 @@ class Gmv extends Arc\Singleton
 			// Loop over everything and mach up
 			if(isset($r->list) and count($r->list)){
 				foreach($r->list as $l){
-					foreach($team as $member){
-						if($l->userDomainKey == $member->_id){
-							$this->brokerInset($member, $p);
+					if($l->responsibility == 'Broker'){
+						foreach($team as $member){
+							if($l->userDomainKey == $member->_id){
+								$this->brokerInset($member, $p);
+							}
 						}
+					break;
 					}
 				}
 			}
@@ -769,7 +772,7 @@ class Gmv extends Arc\Singleton
 			}
 		}
 
-		// Get broker id 
+		// Get broker id
 		$bid = $db->query("SELECT `id` FROM `#gmaven_brokers` WHERE `gmv_id` = '".$member->_id."'")->get_one('id');
 
 		// Match up

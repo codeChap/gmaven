@@ -167,6 +167,7 @@ class Build extends Arc\Singleton
 					 `gmv_id`     VARCHAR(90) NOT NULL,
 					 `name`       VARCHAR(90),
 					 `tel`        VARCHAR(90),
+					 `cell`       VARCHAR(90),
 					 `email`      VARCHAR(90),
 					 `updated_at` INT(11) NOT NULL
 					)

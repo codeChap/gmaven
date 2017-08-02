@@ -725,7 +725,7 @@ class Gmv extends Arc\Singleton
 								$this->brokerInset($member, $p);
 							}
 						}
-					break;
+						break;
 					}
 				}
 			}
@@ -754,11 +754,12 @@ class Gmv extends Arc\Singleton
 			// Inset new broker
 			$q = "
 			INSERT INTO `#gmaven_brokers`
-			(`gmv_id`, `name`, `tel`, `email`, `updated_at`)
+			(`gmv_id`, `name`, `tel`, `cell`, `email`, `updated_at`)
 			VALUES (
 			 '".$member->_id."',
 			 '".$member->name."',
 			 '".$member->tel."',
+			 '".$member->cell."',
 			 '".$member->email."',
 			 ".$this->time."
 			);

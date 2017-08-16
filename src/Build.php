@@ -166,6 +166,7 @@ class Build extends Arc\Singleton
 					 `id` INT(11) AUTO_INCREMENT PRIMARY KEY,
 					 `gmv_id`     VARCHAR(90) NOT NULL,
 					 `name`       VARCHAR(90),
+					 `resp`       VARCHAR(90),
 					 `tel`        VARCHAR(90),
 					 `cell`       VARCHAR(90),
 					 `email`      VARCHAR(90),

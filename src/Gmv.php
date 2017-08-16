@@ -719,10 +719,10 @@ class Gmv extends Arc\Singleton
 			// Loop over everything and mach up
 			if(isset($r->list) and count($r->list)){
 				foreach($r->list as $l){
-					if($l->responsibility == 'Broker'){
+					if(isset($l->userDomainKey) and ! empty($l->userDomainKey)){
 						foreach($team as $member){
 							if($l->userDomainKey == $member->_id){
-								$this->brokerInset($member, $p);
+								$this->brokerInset($member, $p, $l->responsibility);
 							}
 						}
 						break;
@@ -738,12 +738,13 @@ class Gmv extends Arc\Singleton
 	/**
 	 * Inserts a new broker and matches new or existing brokers to a property
 	 *
-	 * @param Object The member from a tram object
-	 * @param Array Property array to assign the broker to
+	 * @param Object The member of the team
+	 * @param Array  Property array to assign the broker to
+	 * @param String Responsibility of the broker
 	 *
 	 * @return void
 	 */
-	public function brokerInset($member, $p)
+	public function brokerInset($member, $p, $r)
 	{
 		// Forge database connection
 		$db = Db::forge($this->get_config());
@@ -754,10 +755,11 @@ class Gmv extends Arc\Singleton
 			// Inset new broker
 			$q = "
 			INSERT INTO `#gmaven_brokers`
-			(`gmv_id`, `name`, `tel`, `cell`, `email`, `updated_at`)
+			(`gmv_id`, `name`, `resp`, `tel`, `cell`, `email`, `updated_at`)
 			VALUES (
 			 '".$member->_id."',
 			 '".$member->name."',
+			 '".$r."',
 			 '".$member->tel."',
 			 '".$member->cell."',
 			 '".$member->email."',

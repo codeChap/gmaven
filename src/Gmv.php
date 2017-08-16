@@ -702,6 +702,7 @@ class Gmv extends Arc\Singleton
 
 		// Clear out existing entries
 		$db->query("TRUNCATE TABLE `#gmaven_brokers`")->exec();
+		$db->query("TRUNCATE TABLE `#gmaven_brokers_to_properties`")->exec();
 
 		// Info and progress
 		$this->cli->green('Match brokers to properties');
@@ -775,12 +776,18 @@ class Gmv extends Arc\Singleton
 			}
 		}
 
+		// Get property id
+		$pid = $p['id'];
+
 		// Get broker id
 		$bid = $db->query("SELECT `id` FROM `#gmaven_brokers` WHERE `gmv_id` = '".$member->_id."'")->get_one('id');
 
 		// Match up
-		if($bid and $p['id']){
-			$db->query("UPDATE `#gmaven_properties` SET `bid` = ".$bid." WHERE `id` = ".$p['id'].";")->exec();
+		if($bid and $pid){
+			$check = $db->query("SELECT COUNT(*) AS 'T' FROM `#gmaven_brokers_to_properties` WHERE `pid` = ".$pid." AND bid = ".$bid)->get_one('T');
+			if($check == 0){
+				$db->query("INSERT INTO `#gmaven_brokers_to_properties` (`pid`, `bid`) VALUES (".$pid.", ".$bid.")")->exec();
+			}
 		}
 	}
 

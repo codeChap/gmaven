@@ -82,7 +82,6 @@ class Build extends Arc\Singleton
 					CREATE TABLE `".$table."`(
 					 `id`                   INT(11) AUTO_INCREMENT PRIMARY KEY,
 					 `did`                  INT(11) NOT NULL COMMENT 'Details ID',
-					 `bid`                  INT(11) DEFAULT 0 COMMENT 'Broker ID',
 					 `lon`                  DECIMAL(9,6) DEFAULT NULL,
 					 `lat`                  DECIMAL(9,6) DEFAULT NULL,
 					 `gla`                  INT(9) DEFAULT 0,
@@ -158,7 +157,7 @@ class Build extends Arc\Singleton
 				$db->exec($q);
 			}
 
-			// Build properties table
+			// Build brokers table
 			$table = $pfx."gmaven_brokers";
 			if( ! in_array($table, $r) ){
 				$q = "
@@ -172,6 +171,19 @@ class Build extends Arc\Singleton
 					 `email`      VARCHAR(90),
 					 `updated_at` INT(11) NOT NULL
 					)
+				";
+				$db->exec($q);
+			}
+
+			// Build brokers to properties table
+			$table = $pfx."gmaven_brokers_to_properties";
+			if( ! in_array($table, $r) ){
+				$q = "
+					CREATE TABLE `".$table."`(
+					 `pid` INT(11) NOT NULL,
+					 `bid` INT(11) NOT NULL,
+					 UNIQUE KEY `pid_bid`(`pid`, `bid`)
+					);
 				";
 				$db->exec($q);
 			}

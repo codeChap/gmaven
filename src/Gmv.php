@@ -601,7 +601,7 @@ class Gmv extends Arc\Singleton
 				 ".(isset($u->unitDetails->gla)                      ? $u->unitDetails->gla : 0).",
 				 ".(isset($u->vacancy->unitDetails->gmr)             ? $u->vacancy->unitDetails->gmr : 0).",
 				 ".(isset($u->vacancy->unitDetails->netAskingRental) ? $u->vacancy->unitDetails->netAskingRental : 0).",
-				 ".(isset($u->vacancy->marketing->availableFrom)  ? $u->vacancy->marketing->availableFrom             : "'".NULL."'").",
+				 ".(isset($u->vacancy->marketing->availableFrom)     ? round($u->vacancy->marketing->availableFrom) : "'".NULL."'").",
 				 '".$propertyId."',
 				 '".addslashes($u->id)."',
 				 ".((isset($u->unitDetails->unitId) and !empty($u->unitDetails->unitId))                             ? "'".addslashes($u->unitDetails->unitId)."'"              : 'NULL').",
@@ -610,7 +610,7 @@ class Gmv extends Arc\Singleton
 				 ".((isset($u->vacancy->sales->marketingHeading) and !empty($u->vacancy->sales->marketingHeading))   ? "'".addslashes($u->vacancy->sales->marketingHeading)."'"  : 'NULL').",
 				 ".((isset($u->vacancy->sales->description) and !empty($u->vacancy->sales->description))             ? "'".addslashes($u->vacancy->sales->description)."'"       : 'NULL').",
 				 ".$this->time.",
-				 ".$u->_updated."
+				 ".round($u->_updated)."
 				);
 				";
 

@@ -80,6 +80,10 @@ class Gmv extends Arc\Singleton
 			$totals['synchronized_images'] = $this->getImages();
 		}
 
+		if(true){
+			$totals['synchronized_images_units'] = $this->getUnitImages();
+		}
+
 		// Start matching brokers to properties
 		if(true){
 			$this->getBrokers();
@@ -638,7 +642,7 @@ class Gmv extends Arc\Singleton
 		$t = count($r->list);
 
 		// Info
-		$this->cli->green('Fetching '.$t.' images.');
+		$this->cli->green('Fetching '.$t.' building images.');
 
 		// Only continue if there is work to be done
 		if($t == 0){
@@ -652,14 +656,14 @@ class Gmv extends Arc\Singleton
 		$db = Db::forge($this->get_config());
 
 		// Clear out existing entries
-		$db->query("TRUNCATE TABLE `#gmaven_images`")->exec();
+		$db->query("TRUNCATE TABLE `#gmaven_building_images`")->exec();
 
 		// Loop over results
 		foreach($r->list as $i => $img){
 
 			// Insert data
 			$q = "
-			INSERT INTO `#gmaven_images`
+			INSERT INTO `#gmaven_building_images`
 			(`entityDomainKey`, `contentDomainKey`, `rating`, `updated_at`, `gmv_updated`)
 			VALUES (
 			 '".$img->entityDomainKey."',
@@ -672,6 +676,72 @@ class Gmv extends Arc\Singleton
 
 			// Insert
 			$db->query($q)->exec();
+
+			// Update progress bar
+			$progress->advance();
+		}
+
+		// Done
+		return $t;
+	}
+
+	/**
+	 * Sync unit images
+	 *
+	 * @param  
+	 * @return 
+	 */
+	function getUnitImages()
+	{
+		// Call Gmaven to get total units
+		$r = $this->post('data/content/entity/propertyUnit/search', [
+			'contentCategory' => 'Image',
+		]);
+		$t = count($r->list);
+
+		// Info
+		$this->cli->green('Fetching '.$t.' unit images.');
+
+		// Only continue if there is work to be done
+		if($t == 0){
+			return;
+		}
+
+		// Progress bar
+		$progress = $this->cli->progress()->total($t);
+
+		// Forge database connection
+		$db = Db::forge($this->get_config());
+
+		// Clear out existing entries
+		$db->query("TRUNCATE TABLE `#gmaven_unit_images`")->exec();
+
+		// Loop over results
+		foreach($r->list as $i => $img){
+
+			// Find propertyUnit entityDomainKey
+			if( ! empty($img->entities)){
+				foreach($img->entities as $e){
+					if($e->entityName == 'propertyUnit'){
+
+						// Insert data
+						$q = "
+						INSERT INTO `#gmaven_unit_images`
+						(`entityDomainKey`, `contentDomainKey`, `rating`, `updated_at`, `gmv_updated`)
+						VALUES (
+						 '".$e->entityDomainKey."',
+						 '".$img->contentDomainKey."',
+						 ".( isset($img->metadata->Rating) ? $img->metadata->Rating : 0 ).",
+						 ".$this->time.",
+						 ".$img->updated."
+						);
+						";
+
+						// Insert
+						$db->query($q)->exec();
+					}
+				}
+			}
 
 			// Update progress bar
 			$progress->advance();

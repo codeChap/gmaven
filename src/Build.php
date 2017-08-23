@@ -142,7 +142,23 @@ class Build extends Arc\Singleton
 			}
 
 			// Build properties table
-			$table = $pfx."gmaven_images";
+			$table = $pfx."gmaven_building_images";
+			if( ! in_array($table, $r) ){
+				$q = "
+					CREATE TABLE `".$table."`(
+					 `id`                 INT(11) AUTO_INCREMENT PRIMARY KEY,
+					 `entityDomainKey`    VARCHAR(90) NOT NULL,
+					 `contentDomainKey`   VARCHAR(90) NOT NULL,
+					 `rating`             INT(2) DEFAULT 0,
+					 `updated_at`         INT(11) NOT NULL,
+					 `gmv_updated`        FLOAT(11,4) NOT NULL
+					)
+				";
+				$db->exec($q);
+			}
+
+			// Build properties table
+			$table = $pfx."gmaven_unit_images";
 			if( ! in_array($table, $r) ){
 				$q = "
 					CREATE TABLE `".$table."`(

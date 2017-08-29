@@ -1,8 +1,8 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework;
 
-class unitTest extends TestCase
+class unitTest extends PHPUnit_Framework_TestCase
 {
 	public function testFind()
 	{
@@ -26,7 +26,7 @@ class unitTest extends TestCase
 				"\$in" => ["\$null", "false"]
 			],
 			'propertyId' => [
-				"\$eq" => "61d35326-4ef2-4aef-a7c7-1054ef744805"
+				"\$eq" => "678fd071-54fb-4bd9-bbc1-05344bdd2105"
 			]
 		];
 

@@ -76,26 +76,26 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching property data
-		if(false){
+		if(true){
 			$totals['synchronized_properties'] = $this->getProperties();
 		}
 
 		// Start fetching unit data
-		if(false){
+		if(true){
 			$totals['synchronized_units'] = $this->getUnits();
 		}
 
 		// Start fetching images
-		if(false){
+		if(true){
 			$totals['synchronized_images'] = $this->getImages();
 		}
 
-		if(false){
+		if(true){
 			$totals['synchronized_images_units'] = $this->getUnitImages();
 		}
 
 		// Start matching brokers to properties
-		if(false){
+		if(true){
 			$this->getBrokers();
 		}
 

@@ -26,7 +26,7 @@ class unitTest extends PHPUnit_Framework_TestCase
 				"\$in" => ["\$null", "false"]
 			],
 			'propertyId' => [
-				"\$eq" => "678fd071-54fb-4bd9-bbc1-05344bdd2105"
+				"\$eq" => "115b5e47-e2e8-4141-915d-921be13611fd"
 			]
 		];
 

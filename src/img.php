@@ -43,12 +43,18 @@
 	// Set client
 	$client = new \GuzzleHttp\Client(['base_uri' => 'https://www.gmaven.com/api/']);
 
-	// Set response
-	$response = $client->request('GET', 'data/content/entity/'.$cdk.'?resize='.$resize, [
-		'headers' => [
-			"gmaven.apiKey" => $key
-		]
-	]);
+	// Force error message
+	try{
+		// Set response
+		$response = $client->request('GET', 'data/content/entity/'.$cdk.'?resize='.$resize, [
+			'headers' => [
+				"gmaven.apiKey" => $key
+			]
+		]);
+	}
+	catch(\Exception $e){
+		die($e->getMessage());
+	}
 
 	// Get returned status code of request
 	if($response->getStatusCode() == 200){
@@ -67,5 +73,6 @@
 		//header("Content-Disposition: filename=" . $name);
 		ob_clean();
 		print $contents;
+		die();
 	}
 ?>

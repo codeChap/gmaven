@@ -151,7 +151,8 @@ class Build extends Arc\Singleton
 					 `contentDomainKey`   VARCHAR(90) NOT NULL,
 					 `rating`             INT(2) DEFAULT 0,
 					 `updated_at`         INT(11) NOT NULL,
-					 `gmv_updated`        FLOAT(11,4) NOT NULL
+					 `gmv_updated`        FLOAT(11,4) NOT NULL,
+					 `removed`            INT(1) DEFAULT 0
 					)
 				";
 				$db->exec($q);
@@ -167,7 +168,8 @@ class Build extends Arc\Singleton
 					 `contentDomainKey`   VARCHAR(90) NOT NULL,
 					 `rating`             INT(2) DEFAULT 0,
 					 `updated_at`         INT(11) NOT NULL,
-					 `gmv_updated`        FLOAT(11,4) NOT NULL
+					 `gmv_updated`        FLOAT(11,4) NOT NULL,
+					 `removed`            INT(1) DEFAULT 0
 					)
 				";
 				$db->exec($q);

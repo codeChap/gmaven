@@ -117,6 +117,11 @@ class Gmv extends Arc\Singleton
 	{
 		$lastSyncDate = strtotime("-".$hours." hours");
 
+		// Start fetching images - good to go
+		if(true){
+			$totals['synchronized_images'] = $this->getImages();
+		}
+
 		// Start fetching aggregates data
 		if(false){
 			$totals['property_types'] = $this->getCategories();
@@ -131,13 +136,8 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching unit data
-		if(true){
-			$totals['synchronized_units'] = $this->getUnits($lastSyncDate);
-		}
-
-		// Start fetching images
 		if(false){
-			$totals['synchronized_images'] = $this->getImages($lastSyncDate);
+			$totals['synchronized_units'] = $this->getUnits($lastSyncDate);
 		}
 
 		// Done
@@ -664,6 +664,9 @@ class Gmv extends Arc\Singleton
 
 		// Forge database connection
 		$db = Db::forge($this->get_config());
+
+		// Mark all entries as removed
+		//$db->query("UPDATE `#gmaven_building_images` SET `removed` = 1")->exec();
 
 		// Clear out existing entries
 		$db->query("TRUNCATE TABLE `#gmaven_building_images`")->exec();

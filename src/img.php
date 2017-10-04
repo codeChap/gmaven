@@ -36,7 +36,7 @@
 		break;
 
 		default :
-			$resize = '300,300';
+			$resize = '500,300';
 		break;
 	}
 

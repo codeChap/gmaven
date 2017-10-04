@@ -61,18 +61,31 @@
 
 		// Pull contents
 		$contents = $response->getBody()->getContents();
-		$cached_for = 86400*1;
-		
-		// Set image Headers
-		header("Content-Type: image/png");
-		//header('Last-Modified: ' . gmdate('D, d M Y H:i:s', $modified) . ' GMT');
-		header("Content-Length: " . strlen($contents));
-		header("Cache-control: max-age=".$cached_for);
-		header("Expires: ".gmdate(DATE_RFC1123, time()+$cached_for));
-		header("ETag: ".md5($cdk.$size));
-		//header("Content-Disposition: filename=" . $name);
-		ob_clean();
-		print $contents;
+
+		// Info on file
+		$finfo = new finfo(FILEINFO_MIME_TYPE);
+		$type = $finfo->buffer($contents);
+		$spl = explode("/", $type);
+		if($spl[0] == 'image'){
+
+			// Cached
+			$cached_for = 86400*1;
+
+			// Set image Headers
+			header("Content-Type: ".$type);
+			//header('Last-Modified: ' . gmdate('D, d M Y H:i:s', $modified) . ' GMT');
+			header("Content-Length: " . strlen($contents));
+			header("Cache-control: max-age=".$cached_for);
+			header("Expires: ".gmdate(DATE_RFC1123, time()+$cached_for));
+			header("ETag: ".md5($cdk.$size));
+			//header("Content-Disposition: filename=" . $name);
+			ob_clean();
+			print $contents;
+			die();
+		}
+
+		// Not an image file
+		header("HTTP/1.0 404 Not Found");
 		die();
 	}
 ?>

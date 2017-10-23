@@ -229,7 +229,7 @@ class Build extends Arc\Singleton
 				$q = "
 					CREATE TABLE `".$table."`(
 					 `pid` INT(11) NOT NULL,
-					 `bid` INT(11) NOT NULL,
+					 `cid` INT(11) NOT NULL,
 					 UNIQUE KEY `pid_bid`(`pid`, `cid`)
 					);
 				";

@@ -99,6 +99,11 @@ class Gmv extends Arc\Singleton
 			$this->getBrokers();
 		}
 
+		// Start matching contacts to properties
+		if(true){
+			$this->getContacts();
+		}
+
 		// Done
 		return [
 			'time'   => ceil((time()-$this->time) / 60) . ' minutes.',
@@ -820,6 +825,84 @@ class Gmv extends Arc\Singleton
 	}
 
 	/**
+	 * 
+	 */
+	public function getContacts()
+	{
+		// Forge database connection
+		$db = Db::forge($this->get_config());
+
+		// We need a list of property ids
+		$list = $db->query(
+			"
+			SELECT D.`gmv_id`, P.`id`  FROM `#gmaven_property_details`D
+			LEFT JOIN `#gmaven_properties` P ON P.`did` = D.`id`
+			"
+		)->get();
+
+		// Clear out existing entries
+		$db->query("TRUNCATE TABLE `#gmaven_contacts`")->exec();
+		$db->query("TRUNCATE TABLE `#gmaven_contacts_to_properties`")->exec();
+
+		// Info and progress
+		$this->cli->green('Match contacts to properties');
+		$progress = $this->cli->progress()->total(count($list));
+
+		// Buid up an array of property ids and a string to query with
+		$ids = [];
+		foreach($list as $property){
+
+			// Find contacts listed on a property
+			$r = $this->post('data/default/property/search', [
+				'sourceFields' => [
+					'contacts._id'
+				],
+				'query' => [
+					'id' => [
+						"\$eq" => $property['gmv_id']
+					]
+				],
+				'page'  => ['number' => 1, 'size' => 1]
+			]);
+
+			// Check for results and exit if nothing
+			if(count($r->list) > 0){
+
+				// Reset array
+				$arr = [];
+
+				// Pull out all the ids
+				foreach($r->list as $objArr){
+					foreach($objArr as $obj){
+						foreach($obj as $contact){
+							$arr[] = $contact->_id;
+						}
+					}
+				}
+
+				// Call Gmaven to get total properties
+				$result = $this->post('data/default/contact/search', [
+					'sourceFields' => ['id', 'name', 'tel', 'cell', 'email'],
+					'query' => [
+						"id" => [
+							"\$in" => $arr
+						]
+					],
+				]);
+				
+				if($result->md->totalResults > 0){
+					foreach($result->list as $contact){
+						$this->contactInsert($contact, $property);
+					}
+				}
+			}
+
+			// Update progress bar
+			$progress->advance();
+		}
+	}
+
+	/**
 	 * Inserts a new broker and matches new or existing brokers to a property
 	 *
 	 * @param Object The member of the team
@@ -875,6 +958,57 @@ class Gmv extends Arc\Singleton
 	}
 
 	/**
+	 * Inserts a new contact and matches new or existing contacts to a property
+	 *
+	 * @param Object The contact object
+	 * @param Array  Property array to assign the broker to
+	 */
+	public function contactInsert($contact, $property)
+	{
+		// Forge database connection
+		$db = Db::forge($this->get_config());
+
+		// Check  if the broker exists
+		if($db->query("SELECT * FROM `#gmaven_contacts` WHERE `gmv_id` = '".$contact->id."'")->get_one('id', false) == false){
+
+			// Inset new broker
+			$q = "
+			INSERT INTO `#gmaven_contacts`
+			(`gmv_id`, `name`, `tel`, `cell`, `email`, `updated_at`)
+			VALUES (
+			 '".$contact->id."',
+			 '".$contact->name."',
+			 '".$contact->tel."',
+			 '".$contact->cell."',
+			 '".$contact->email."',
+			 ".$this->time."
+			);
+			";
+
+			try{
+				$db->query($q)->exec();
+			}
+			catch(\Exception  $e){
+				$this->cli->red($e->getMessage());
+			}
+		}
+
+		// Get property id
+		$pid = $property['id'];
+
+		// Get contact id
+		$cid = $db->query("SELECT `id` FROM `#gmaven_contacts` WHERE `gmv_id` = '".$contact->id."'")->get_one('id');
+
+		// Match up
+		if($cid and $pid){
+			$check = $db->query("SELECT COUNT(*) AS 'T' FROM `#gmaven_contacts_to_properties` WHERE `pid` = ".$pid." AND cid = ".$cid)->get_one('T');
+			if($check == 0){
+				$db->query("INSERT INTO `#gmaven_contacts_to_properties` (`pid`, `cid`) VALUES (".$pid.", ".$cid.")")->exec();
+			}
+		}
+	}
+
+	/**
 	 * Get data via Guzzle
 	 *
 	 * @param String The endpoint we calling against
@@ -896,7 +1030,7 @@ class Gmv extends Arc\Singleton
 		]);
 
 		// Return response data
-		return $this->getResponse($response); 
+		return $this->getResponse($response);
 	}
 
 	/**
@@ -921,6 +1055,7 @@ class Gmv extends Arc\Singleton
 		// Setup Guzzle
 		$client = new \GuzzleHttp\Client($clientDataArray);
 		$response = $client->request('post', $endPoint, [
+			'debug'   => false,
 			'headers' => [
 				'gmaven.apiKey' => $this->get_config('key'),
 				'Content-Type'  => 'application/json'
@@ -928,7 +1063,7 @@ class Gmv extends Arc\Singleton
 		]);
 
 		// Return response data
-		return $this->getResponse($response); 
+		return $this->getResponse($response);
 	}
 
 	/**

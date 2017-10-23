@@ -206,6 +206,36 @@ class Build extends Arc\Singleton
 				$db->exec($q);
 			}
 
+			// Build contacts table
+			$table = $pfx."gmaven_contacts";
+			if( ! in_array($table, $r) ){
+				$q = "
+					CREATE TABLE `".$table."`(
+					 `id` INT(11) AUTO_INCREMENT PRIMARY KEY,
+					 `gmv_id`     VARCHAR(90) NOT NULL,
+					 `name`       VARCHAR(90),
+					 `tel`        VARCHAR(90),
+					 `cell`       VARCHAR(90),
+					 `email`      VARCHAR(90),
+					 `updated_at` INT(11) NOT NULL
+					)
+				";
+				$db->exec($q);
+			}
+
+			// Build contacts to properties table
+			$table = $pfx."gmaven_contacts_to_properties";
+			if( ! in_array($table, $r) ){
+				$q = "
+					CREATE TABLE `".$table."`(
+					 `pid` INT(11) NOT NULL,
+					 `bid` INT(11) NOT NULL,
+					 UNIQUE KEY `pid_bid`(`pid`, `cid`)
+					);
+				";
+				$db->exec($q);
+			}
+
 			// Close
 		$db = null;
 		}

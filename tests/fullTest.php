@@ -1,6 +1,6 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
+use PHPUnit\Framework;
 
 class fullTest extends TestCase
 {

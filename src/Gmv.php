@@ -858,7 +858,7 @@ class Gmv extends Arc\Singleton
 			// Find contacts listed on a property
 			$r = $this->post('data/default/property/search', [
 				'sourceFields' => [
-					'contacts._id'
+					'contacts._id',
 				],
 				'query' => [
 					'id' => [
@@ -874,33 +874,33 @@ class Gmv extends Arc\Singleton
 				// Reset array
 				$arr = [];
 
-				// Pull out all the ids
+				// Pull out all the contact ids
 				foreach($r->list as $objArr){
-					if(is_array($objArr) and isset($objArr->contacts)){
+					if(isset($objArr->contacts)){
 						foreach($objArr->contacts as $obj){
-							if(is_array($obj)){
-								foreach($obj as $contact){
-									$arr[] = $contact->_id;
-								}
-							}
+							$arr[] = $obj->_id;
 						}
 					}
 				}
 
-				// Call Gmaven to get total properties
-				$result = $this->post('data/default/contact/search', [
-					'sourceFields' => ['id', 'name', 'tel', 'cell', 'email'],
-					'query' => [
-						"id" => [
-							"\$in" => $arr
-						]
-					],
-				]);
+				// If we have array data to work with
+				if(count($arr)){
 
-				if($result->md->totalResults > 0){
-					foreach($result->list as $contact){
-						if($this->contactInsert($contact, $property)){
-							$t++;
+					// Call Gmaven to get total properties
+					$result = $this->post('data/default/contact/search', [
+						'sourceFields' => ['id', 'name', 'tel', 'cell', 'email'],
+						'query' => [
+							"id" => [
+								"\$in" => $arr
+							]
+						]
+					]);
+
+					if($result->md->totalResults > 0){
+						foreach($result->list as $contact){
+							if($this->contactInsert($contact, $property)){
+								$t++;
+							}
 						}
 					}
 				}
@@ -998,7 +998,7 @@ class Gmv extends Arc\Singleton
 			";
 
 			// Info
-			$this->cli->green('Inserted ' . $contact->name);
+			//$this->cli->green('Inserted ' . $contact->name);
 
 			try{
 				$db->query($q)->exec();

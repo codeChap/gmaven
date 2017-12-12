@@ -68,7 +68,7 @@ class Gmv extends Arc\Singleton
 		];
 
 		// Start fetching aggregates data
-		if(false){
+		if(true){
 			$totals['synchronized_property_types'] = $this->getCategories();
 			$totals['synchronized_provinces'] = $this->getProvinces();
 			$totals['synchronized_suburbs'] = $this->getSuburbs();

@@ -101,7 +101,7 @@ class Gmv extends Arc\Singleton
 
 		// Start matching contacts to properties
 		if(true){
-			$this->getContacts();
+			$totals['synchronized_properties_to_contacts'] = $this->getContacts();
 		}
 
 		// Done
@@ -829,6 +829,9 @@ class Gmv extends Arc\Singleton
 	 */
 	public function getContacts()
 	{
+		// Totl to return
+		$t = 0;
+
 		// Forge database connection
 		$db = Db::forge($this->get_config());
 
@@ -873,9 +876,13 @@ class Gmv extends Arc\Singleton
 
 				// Pull out all the ids
 				foreach($r->list as $objArr){
-					foreach($objArr as $obj){
-						foreach($obj as $contact){
-							$arr[] = $contact->_id;
+					if(is_array($objArr) and isset($objArr->contacts)){
+						foreach($objArr->contacts as $obj){
+							if(is_array($obj)){
+								foreach($obj as $contact){
+									$arr[] = $contact->_id;
+								}
+							}
 						}
 					}
 				}
@@ -889,10 +896,12 @@ class Gmv extends Arc\Singleton
 						]
 					],
 				]);
-				
+
 				if($result->md->totalResults > 0){
 					foreach($result->list as $contact){
-						$this->contactInsert($contact, $property);
+						if($this->contactInsert($contact, $property)){
+							$t++;
+						}
 					}
 				}
 			}
@@ -900,6 +909,9 @@ class Gmv extends Arc\Singleton
 			// Update progress bar
 			$progress->advance();
 		}
+
+		// Done
+		return $t;
 	}
 
 	/**
@@ -927,9 +939,9 @@ class Gmv extends Arc\Singleton
 			 '".$member->_id."',
 			 '".$member->name."',
 			 '".$r."',
-			 '".$member->tel."',
-			 '".$member->cell."',
-			 '".$member->email."',
+			 '".(!empty($member->tel)   ? $member->tel   : '')."',
+			 '".(!empty($member->cell)  ? $member->cell  : '')."',
+			 '".(!empty($member->email) ? $member->email : '')."',
 			 ".$this->time."
 			);
 			";
@@ -978,12 +990,15 @@ class Gmv extends Arc\Singleton
 			VALUES (
 			 '".$contact->id."',
 			 '".$contact->name."',
-			 '".$contact->tel."',
-			 '".$contact->cell."',
-			 '".$contact->email."',
+			 '".(!empty($contact->tel)   ? $contact->tel   : '')."',
+			 '".(!empty($contact->cell)  ? $contact->cell  : '')."',
+			 '".(!empty($contact->email) ? $contact->email : '')."',
 			 ".$this->time."
 			);
 			";
+
+			// Info
+			$this->cli->green('Inserted ' . $contact->name);
 
 			try{
 				$db->query($q)->exec();
@@ -1004,8 +1019,12 @@ class Gmv extends Arc\Singleton
 			$check = $db->query("SELECT COUNT(*) AS 'T' FROM `#gmaven_contacts_to_properties` WHERE `pid` = ".$pid." AND cid = ".$cid)->get_one('T');
 			if($check == 0){
 				$db->query("INSERT INTO `#gmaven_contacts_to_properties` (`pid`, `cid`) VALUES (".$pid.", ".$cid.")")->exec();
+				return true;
 			}
 		}
+
+		// No match
+		return false;
 	}
 
 	/**

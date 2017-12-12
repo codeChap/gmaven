@@ -76,26 +76,26 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching property data
-		if(false){
+		if(true){
 			$totals['synchronized_properties'] = $this->getProperties();
 		}
 
 		// Start fetching unit data
-		if(false){
+		if(true){
 			$totals['synchronized_units'] = $this->getUnits();
 		}
 
 		// Start fetching images
-		if(false){
+		if(true){
 			$totals['synchronized_images'] = $this->getImages();
 		}
 
-		if(false){
+		if(true){
 			$totals['synchronized_images_units'] = $this->getUnitImages();
 		}
 
 		// Start matching brokers to properties
-		if(false){
+		if(true){
 			$this->getBrokers();
 		}
 
@@ -847,9 +847,13 @@ class Gmv extends Arc\Singleton
 		$db->query("TRUNCATE TABLE `#gmaven_contacts`")->exec();
 		$db->query("TRUNCATE TABLE `#gmaven_contacts_to_properties`")->exec();
 
+		//print count($list); die();
+
 		// Info and progress
 		$this->cli->green('Match contacts to properties');
 		$progress = $this->cli->progress()->total(count($list));
+
+		//die();
 
 		// Buid up an array of property ids and a string to query with
 		$ids = [];

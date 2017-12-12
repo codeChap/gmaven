@@ -68,7 +68,7 @@ class Gmv extends Arc\Singleton
 		];
 
 		// Start fetching aggregates data
-		if(true){
+		if(false){
 			$totals['synchronized_property_types'] = $this->getCategories();
 			$totals['synchronized_provinces'] = $this->getProvinces();
 			$totals['synchronized_suburbs'] = $this->getSuburbs();
@@ -76,26 +76,26 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching property data
-		if(true){
+		if(false){
 			$totals['synchronized_properties'] = $this->getProperties();
 		}
 
 		// Start fetching unit data
-		if(true){
+		if(false){
 			$totals['synchronized_units'] = $this->getUnits();
 		}
 
 		// Start fetching images
-		if(true){
+		if(false){
 			$totals['synchronized_images'] = $this->getImages();
 		}
 
-		if(true){
+		if(false){
 			$totals['synchronized_images_units'] = $this->getUnitImages();
 		}
 
 		// Start matching brokers to properties
-		if(true){
+		if(false){
 			$this->getBrokers();
 		}
 

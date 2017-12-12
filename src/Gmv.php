@@ -829,7 +829,7 @@ class Gmv extends Arc\Singleton
 	 */
 	public function getContacts()
 	{
-		// Totl to return
+		// Total to return
 		$t = 0;
 
 		// Forge database connection
@@ -842,6 +842,8 @@ class Gmv extends Arc\Singleton
 			LEFT JOIN `#gmaven_properties` P ON P.`did` = D.`id`
 			"
 		)->get();
+
+		print "<pre>"; print_r($list); print "</pre>"; die();
 
 		// Clear out existing entries
 		$db->query("TRUNCATE TABLE `#gmaven_contacts`")->exec();

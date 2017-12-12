@@ -843,8 +843,6 @@ class Gmv extends Arc\Singleton
 			"
 		)->get();
 
-		print "<pre>"; print_r($list); print "</pre>"; die();
-
 		// Clear out existing entries
 		$db->query("TRUNCATE TABLE `#gmaven_contacts`")->exec();
 		$db->query("TRUNCATE TABLE `#gmaven_contacts_to_properties`")->exec();

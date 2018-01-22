@@ -681,6 +681,8 @@ class Gmv extends Arc\Singleton
 		// Loop over results
 		foreach($r->list as $i => $img){
 
+			print $img->updated . '/r/n';
+
 			// Insert data
 			$q = "
 			INSERT INTO `#gmaven_building_images`

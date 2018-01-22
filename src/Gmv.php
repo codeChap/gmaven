@@ -684,20 +684,19 @@ class Gmv extends Arc\Singleton
 			// Insert data
 			$q = "
 			INSERT INTO `#gmaven_building_images`
-			(`entityDomainKey`, `contentDomainKey`, `rating`, `updated_at`, `gmv_updated`)
+			(`entityDomainKey`, `contentDomainKey`, `rating`, `updated_at`)
 			VALUES (
 			 '".$img->entityDomainKey."',
 			 '".$img->contentDomainKey."',
 			 ".( isset($img->metadata->Rating) ? $img->metadata->Rating : 0 ).",
-			 ".$this->time.",
-			 ".( (isset($img->updated) and !empty($img->updated) and $img->updated > 0) ? round($img->updated) : 0 )."
+			 ".$this->time."
 			);
 			";
 
+			//  ".( (isset($img->updated) and !empty($img->updated) and $img->updated > 0) ? round($img->updated) : 0 )."
+
 			// Insert
-			if( ! $db->query($q)->exec()){
-				die($q);
-			}
+			$db->query($q)->exec();
 
 			// Update progress bar
 			$progress->advance();

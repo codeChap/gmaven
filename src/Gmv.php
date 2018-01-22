@@ -57,18 +57,20 @@ class Gmv extends Arc\Singleton
 
 		// Pre-build return array
 		$totals = [
-			'synchronized_property_types' => 0,
-			'synchronized_provinces'      => 0,
-			'synchronized_suburbs'        => 0,
-			'synchronized_cities'         => 0,
-			'synchronized_properties'     => 0,
-			'synchronized_units'          => 0,
-			'synchronized_images'         => 0,
-			'synchronized_images_units'   => 0
+			'synchronized_property_types'         => 0,
+			'synchronized_provinces'              => 0,
+			'synchronized_suburbs'                => 0,
+			'synchronized_cities'                 => 0,
+			'synchronized_properties'             => 0,
+			'synchronized_units'                  => 0,
+			'synchronized_images'                 => 0,
+			'synchronized_images_units'           => 0,
+			'synchronized_brokers_to_properties'  => 0,
+			'synchronized_properties_to_contacts' => 0
 		];
 
 		// Start fetching aggregates data
-		if(false){
+		if($this->get_config('sync_aggregates')){
 			$totals['synchronized_property_types'] = $this->getCategories();
 			$totals['synchronized_provinces'] = $this->getProvinces();
 			$totals['synchronized_suburbs'] = $this->getSuburbs();
@@ -76,31 +78,31 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching property data
-		if(false){
+		if($this->get_config('sync_properties')){
 			$totals['synchronized_properties'] = $this->getProperties();
 		}
 
 		// Start fetching unit data
-		if(true){
+		if($this->get_config('sync_units')){
 			$totals['synchronized_units'] = $this->getUnits();
 		}
 
 		// Start fetching images
-		if(false){
+		if($this->get_config('sync_images')){
 			$totals['synchronized_images'] = $this->getImages();
 		}
 
-		if(false){
+		if($this->get_config('sync_images_units')){
 			$totals['synchronized_images_units'] = $this->getUnitImages();
 		}
 
 		// Start matching brokers to properties
-		if(false){
-			$totals['synchronized_brokers to properties'] = $this->getBrokers();
+		if($this->get_config('sync_brokers_to_properties')){
+			$totals['synchronized_brokers_to_properties'] = $this->getBrokers();
 		}
 
 		// Start matching contacts to properties
-		if(false){
+		if($this->get_config('sync_properties_to_contacts')){
 			$totals['synchronized_properties_to_contacts'] = $this->getContacts();
 		}
 

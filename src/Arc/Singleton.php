@@ -22,7 +22,15 @@ abstract class Singleton
 	/**
 	* @var array $config Default config array.
 	*/
-	protected $config = [];
+	protected $config = [
+		'sync_aggregates'             => true,
+		'sync_properties'             => true,
+		'sync_units'                  => true,
+		'sync_images'                 => true,
+		'sync_images_units'           => true,
+		'sync_brokers_to_properties'  => true,
+		'sync_properties_to_contacts' => true
+	];
 
 	/**
 	* Gets a new instance of this class based on the calling class

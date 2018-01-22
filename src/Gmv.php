@@ -50,7 +50,7 @@ class Gmv extends Arc\Singleton
 	public function Sync()
 	{
 		// Build required tables
-		if(true){
+		if(false){
 			$b = new Build($this->get_config());
 			$b->tables();
 		}
@@ -68,7 +68,7 @@ class Gmv extends Arc\Singleton
 		];
 
 		// Start fetching aggregates data
-		if(true){
+		if(false){
 			$totals['synchronized_property_types'] = $this->getCategories();
 			$totals['synchronized_provinces'] = $this->getProvinces();
 			$totals['synchronized_suburbs'] = $this->getSuburbs();
@@ -76,7 +76,7 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching property data
-		if(true){
+		if(false){
 			$totals['synchronized_properties'] = $this->getProperties();
 		}
 
@@ -86,21 +86,21 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching images
-		if(true){
+		if(false){
 			$totals['synchronized_images'] = $this->getImages();
 		}
 
-		if(true){
+		if(false){
 			$totals['synchronized_images_units'] = $this->getUnitImages();
 		}
 
 		// Start matching brokers to properties
-		if(true){
+		if(false){
 			$this->getBrokers();
 		}
 
 		// Start matching contacts to properties
-		if(true){
+		if(false){
 			$totals['synchronized_properties_to_contacts'] = $this->getContacts();
 		}
 
@@ -993,7 +993,7 @@ class Gmv extends Arc\Singleton
 			(`gmv_id`, `name`, `tel`, `cell`, `email`, `updated_at`)
 			VALUES (
 			 '".$contact->id."',
-			 '".$contact->name."',
+			 '".(!empty(addslashes($contact->name))  ? $contact->name  : '')."',
 			 '".(!empty($contact->tel)   ? $contact->tel   : '')."',
 			 '".(!empty($contact->cell)  ? $contact->cell  : '')."',
 			 '".(!empty($contact->email) ? $contact->email : '')."',

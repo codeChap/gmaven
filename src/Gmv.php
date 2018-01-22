@@ -690,7 +690,7 @@ class Gmv extends Arc\Singleton
 			 '".$img->contentDomainKey."',
 			 ".( isset($img->metadata->Rating) ? $img->metadata->Rating : 0 ).",
 			 ".$this->time.",
-			 ".( isset($img->updated) and !empty($img->updated) and $img->updated > 0 ? round($img->updated) : 0 )."
+			 ".( isset($img->updated) and !empty($img->updated) and $img->updated > 0 ? round($img->updated) : '0' )."
 			);
 			";
 

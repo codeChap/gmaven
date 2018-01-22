@@ -488,7 +488,7 @@ class Gmv extends Arc\Singleton
 			 ".$cid.",
 			 ".$sid.",
 			 ".$this->time.",
-			 ".floor($p->_updated)."
+			 ".round($p->_updated)."
 			);
 			COMMIT;
 			";
@@ -753,7 +753,7 @@ class Gmv extends Arc\Singleton
 						 '".$img->contentDomainKey."',
 						 ".( isset($img->metadata->Rating) ? $img->metadata->Rating : 0 ).",
 						 ".$this->time.",
-						 ".$img->updated."
+						 ".round($img->updated)."
 						);
 						";
 

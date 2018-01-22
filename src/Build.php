@@ -93,7 +93,7 @@ class Build extends Arc\Singleton
 					 `city_id`              INT(11) DEFAULT 0,
 					 `suburb_id`            INT(11) DEFAULT 0,
 					 `updated_at`           INT(11) NOT NULL,
-					 `gmv_updated`          FLOAT(11,4) NOT NULL
+					 `gmv_updated`          INT(11)
 					)
 				";
 				$db->exec($q);
@@ -135,7 +135,7 @@ class Build extends Arc\Singleton
 					 `marketingHeading`   VARCHAR(550),
 					 `description`        BLOB,
 					 `updated_at`         INT(11) NOT NULL,
-					 `gmv_updated`        INT(11) NOT NULL
+					 `gmv_updated`        INT(11)
 					)
 				";
 				$db->exec($q);
@@ -151,7 +151,7 @@ class Build extends Arc\Singleton
 					 `contentDomainKey`   VARCHAR(90) NOT NULL,
 					 `rating`             INT(2) DEFAULT 0,
 					 `updated_at`         INT(11) NOT NULL,
-					 `gmv_updated`        FLOAT(11,4) NOT NULL,
+					 `gmv_updated`        INT(11),
 					 `removed`            INT(1) DEFAULT 0
 					)
 				";
@@ -168,7 +168,7 @@ class Build extends Arc\Singleton
 					 `contentDomainKey`   VARCHAR(90) NOT NULL,
 					 `rating`             INT(2) DEFAULT 0,
 					 `updated_at`         INT(11) NOT NULL,
-					 `gmv_updated`        FLOAT(11,4) NOT NULL,
+					 `gmv_updated`        INT(11),
 					 `removed`            INT(1) DEFAULT 0
 					)
 				";

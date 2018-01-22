@@ -681,8 +681,6 @@ class Gmv extends Arc\Singleton
 		// Loop over results
 		foreach($r->list as $i => $img){
 
-			print $img->updated . '/r/n';
-
 			// Insert data
 			$q = "
 			INSERT INTO `#gmaven_building_images`
@@ -692,7 +690,7 @@ class Gmv extends Arc\Singleton
 			 '".$img->contentDomainKey."',
 			 ".( isset($img->metadata->Rating) ? $img->metadata->Rating : 0 ).",
 			 ".$this->time.",
-			 ".( isset($img->updated) ? round($img->updated) : 0 )."
+			 ".( isset($img->updated) and !empty($img->updated) and $img->updated > 0 ? round($img->updated) : 0 )."
 			);
 			";
 

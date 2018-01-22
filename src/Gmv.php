@@ -50,7 +50,7 @@ class Gmv extends Arc\Singleton
 	public function Sync()
 	{
 		// Build required tables
-		if(false){
+		if(true){
 			$b = new Build($this->get_config());
 			$b->tables();
 		}
@@ -96,7 +96,7 @@ class Gmv extends Arc\Singleton
 
 		// Start matching brokers to properties
 		if(false){
-			$this->getBrokers();
+			$totals['synchronized_brokers to properties'] = $this->getBrokers();
 		}
 
 		// Start matching contacts to properties
@@ -787,20 +787,22 @@ class Gmv extends Arc\Singleton
 			LEFT JOIN `#gmaven_properties` P ON P.`did` = D.`id`
 			"
 		)->get();
+		$t = count($list);
+
+		// Info and progress
+		$this->cli->green('Match brokers to properties');
+		$progress = $this->cli->progress()->total($t);
+
+		if($t == 0){
+			return;
+		}
 
 		// Clear out existing entries
 		$db->query("TRUNCATE TABLE `#gmaven_brokers`")->exec();
 		$db->query("TRUNCATE TABLE `#gmaven_brokers_to_properties`")->exec();
 
-		// Info and progress
-		$this->cli->green('Match brokers to properties');
-		$progress = $this->cli->progress()->total(count($list));
-
 		// Loop over each property
 		foreach($list as $i => $p){
-
-			// Create or reset broker array
-			$brokers = [];
 
 			// Fetch info
 			$r = $this->get('data/entity/property/'.$p['gmv_id'].'/responsibility');
@@ -822,6 +824,9 @@ class Gmv extends Arc\Singleton
 			// Update progress bar
 			$progress->advance();
 		}
+
+		// Done
+		return $t;
 	}
 
 	/**

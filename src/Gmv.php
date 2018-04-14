@@ -57,18 +57,20 @@ class Gmv extends Arc\Singleton
 
 		// Pre-build return array
 		$totals = [
-			'synchronized_property_types' => 0,
-			'synchronized_provinces'      => 0,
-			'synchronized_suburbs'        => 0,
-			'synchronized_cities'         => 0,
-			'synchronized_properties'     => 0,
-			'synchronized_units'          => 0,
-			'synchronized_images'         => 0,
-			'synchronized_images_units'   => 0
+			'synchronized_property_types'         => 0,
+			'synchronized_provinces'              => 0,
+			'synchronized_suburbs'                => 0,
+			'synchronized_cities'                 => 0,
+			'synchronized_properties'             => 0,
+			'synchronized_units'                  => 0,
+			'synchronized_images'                 => 0,
+			'synchronized_images_units'           => 0,
+			'synchronized_brokers_to_properties'  => 0,
+			'synchronized_properties_to_contacts' => 0
 		];
 
 		// Start fetching aggregates data
-		if(true){
+		if($this->get_config('sync_aggregates')){
 			$totals['synchronized_property_types'] = $this->getCategories();
 			$totals['synchronized_provinces'] = $this->getProvinces();
 			$totals['synchronized_suburbs'] = $this->getSuburbs();
@@ -76,31 +78,31 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Start fetching property data
-		if(true){
+		if($this->get_config('sync_properties')){
 			$totals['synchronized_properties'] = $this->getProperties();
 		}
 
 		// Start fetching unit data
-		if(true){
+		if($this->get_config('sync_units')){
 			$totals['synchronized_units'] = $this->getUnits();
 		}
 
 		// Start fetching images
-		if(true){
+		if($this->get_config('sync_images')){
 			$totals['synchronized_images'] = $this->getImages();
 		}
 
-		if(true){
+		if($this->get_config('sync_images_units')){
 			$totals['synchronized_images_units'] = $this->getUnitImages();
 		}
 
 		// Start matching brokers to properties
-		if(true){
-			$this->getBrokers();
+		if($this->get_config('sync_brokers_to_properties')){
+			$totals['synchronized_brokers_to_properties'] = $this->getBrokers();
 		}
 
 		// Start matching contacts to properties
-		if(true){
+		if($this->get_config('sync_properties_to_contacts')){
 			$totals['synchronized_properties_to_contacts'] = $this->getContacts();
 		}
 
@@ -486,7 +488,7 @@ class Gmv extends Arc\Singleton
 			 ".$cid.",
 			 ".$sid.",
 			 ".$this->time.",
-			 ".floor($p->_updated)."
+			 ".(isset($p->updated) ? round($p->_updated) : 0)."
 			);
 			COMMIT;
 			";
@@ -620,7 +622,7 @@ class Gmv extends Arc\Singleton
 				 ".(isset($u->unitDetails->gla)                      ? $u->unitDetails->gla : 0).",
 				 ".(isset($u->vacancy->unitDetails->gmr)             ? $u->vacancy->unitDetails->gmr : 0).",
 				 ".(isset($u->vacancy->unitDetails->netAskingRental) ? $u->vacancy->unitDetails->netAskingRental : 0).",
-				 ".(isset($u->vacancy->marketing->availableFrom)     ? round($u->vacancy->marketing->availableFrom) : "'".NULL."'").",
+				 ".(isset($u->vacancy->marketing->availableFrom)     ? round($u->vacancy->marketing->availableFrom) : 0).",
 				 '".$propertyId."',
 				 '".addslashes($u->id)."',
 				 ".((isset($u->unitDetails->unitId) and !empty($u->unitDetails->unitId))                             ? "'".addslashes($u->unitDetails->unitId)."'"              : 'NULL').",
@@ -629,7 +631,7 @@ class Gmv extends Arc\Singleton
 				 ".((isset($u->vacancy->sales->marketingHeading) and !empty($u->vacancy->sales->marketingHeading))   ? "'".addslashes($u->vacancy->sales->marketingHeading)."'"  : 'NULL').",
 				 ".((isset($u->vacancy->sales->description) and !empty($u->vacancy->sales->description))             ? "'".addslashes($u->vacancy->sales->description)."'"       : 'NULL').",
 				 ".$this->time.",
-				 ".round($u->_updated)."
+				 ".(isset($u->updated) ? round($u->_updated) : 0)."
 				);
 				";
 
@@ -682,15 +684,16 @@ class Gmv extends Arc\Singleton
 			// Insert data
 			$q = "
 			INSERT INTO `#gmaven_building_images`
-			(`entityDomainKey`, `contentDomainKey`, `rating`, `updated_at`, `gmv_updated`)
+			(`entityDomainKey`, `contentDomainKey`, `rating`, `updated_at`)
 			VALUES (
 			 '".$img->entityDomainKey."',
 			 '".$img->contentDomainKey."',
 			 ".( isset($img->metadata->Rating) ? $img->metadata->Rating : 0 ).",
-			 ".$this->time.",
-			 ".$img->updated."
+			 ".$this->time."
 			);
 			";
+
+			//  ".( (isset($img->updated) and !empty($img->updated) and $img->updated > 0) ? round($img->updated) : 0 )."
 
 			// Insert
 			$db->query($q)->exec();
@@ -751,7 +754,7 @@ class Gmv extends Arc\Singleton
 						 '".$img->contentDomainKey."',
 						 ".( isset($img->metadata->Rating) ? $img->metadata->Rating : 0 ).",
 						 ".$this->time.",
-						 ".$img->updated."
+						 ".( isset($img->updated) ? round($img->updated) : 0)."
 						);
 						";
 
@@ -787,20 +790,22 @@ class Gmv extends Arc\Singleton
 			LEFT JOIN `#gmaven_properties` P ON P.`did` = D.`id`
 			"
 		)->get();
+		$t = count($list);
+
+		// Info and progress
+		$this->cli->green('Match brokers to properties');
+		$progress = $this->cli->progress()->total($t);
+
+		if($t == 0){
+			return;
+		}
 
 		// Clear out existing entries
 		$db->query("TRUNCATE TABLE `#gmaven_brokers`")->exec();
 		$db->query("TRUNCATE TABLE `#gmaven_brokers_to_properties`")->exec();
 
-		// Info and progress
-		$this->cli->green('Match brokers to properties');
-		$progress = $this->cli->progress()->total(count($list));
-
 		// Loop over each property
 		foreach($list as $i => $p){
-
-			// Create or reset broker array
-			$brokers = [];
 
 			// Fetch info
 			$r = $this->get('data/entity/property/'.$p['gmv_id'].'/responsibility');
@@ -824,6 +829,9 @@ class Gmv extends Arc\Singleton
 			// Update progress bar
 			$progress->advance();
 		}
+
+		// Done
+		return $t;
 	}
 
 	/**
@@ -995,7 +1003,7 @@ class Gmv extends Arc\Singleton
 			(`gmv_id`, `name`, `tel`, `cell`, `email`, `updated_at`)
 			VALUES (
 			 '".$contact->id."',
-			 '".$contact->name."',
+			 '".(!empty(addslashes($contact->name))  ? $contact->name  : '')."',
 			 '".(!empty($contact->tel)   ? $contact->tel   : '')."',
 			 '".(!empty($contact->cell)  ? $contact->cell  : '')."',
 			 '".(!empty($contact->email) ? $contact->email : '')."',

@@ -809,9 +809,11 @@ class Gmv extends Arc\Singleton
 			if(isset($r->list) and count($r->list)){
 				foreach($r->list as $l){
 					if(isset($l->userDomainKey) and ! empty($l->userDomainKey)){
-						foreach($team as $member){
-							if($l->userDomainKey == $member->_id){
-								$this->brokerInset($member, $p, $l->responsibility);
+						foreach($team->list as $member){
+							if(isset($member->_id)){
+								if($l->userDomainKey == $member->_id){
+									$this->brokerInset($member, $p, $l->responsibility);
+								}
 							}
 						}
 						break;

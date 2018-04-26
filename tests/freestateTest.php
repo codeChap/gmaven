@@ -2,7 +2,7 @@
 
 use PHPUnit\Framework;
 
-class freestateTest extends TestCase
+class freestateTest extends PHPUnit_Framework_TestCase
 {
 	public function testFind()
 	{

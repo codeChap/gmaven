@@ -365,6 +365,15 @@ class Gmv extends Arc\Singleton
 		$query = [];
 		$from = [];
 
+		// TEST
+		/*
+		$query = [
+			'id' => [
+				"\$in" => ["9e67bfe5-3e5b-4399-a1d3-f13ad0978126"]
+			]
+		];
+		*/
+
 		// Partial or full sync
 		if($fromWhen){
 			$from = [

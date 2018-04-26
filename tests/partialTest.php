@@ -2,7 +2,7 @@
 
 use PHPUnit\Framework;
 
-class basicTest extends TestCase
+class basicTest extends PHPUnit_Framework_TestCase
 {
 	public function testPartial()
 	{

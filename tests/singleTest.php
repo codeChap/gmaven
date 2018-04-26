@@ -2,7 +2,7 @@
 
 use PHPUnit\Framework;
 
-class hatfieldTest extends PHPUnit_Framework_TestCase
+class singleTest extends PHPUnit_Framework_TestCase
 {
 	public function testFind()
 	{
@@ -13,8 +13,8 @@ class hatfieldTest extends PHPUnit_Framework_TestCase
 		$g = \CodeChap\Gmv\Gmv::forge([
 			'key'  => $config['key'],
 			'host' => '127.0.0.1',
-			'user' => 'root',
-			'pass' => 'Friday24a4',
+			'user' => 'admin',
+			'pass' => '',
 			'base' => 'dev_jhi',
 			'pfx'  => 'jhi_'
 		]);
@@ -22,11 +22,8 @@ class hatfieldTest extends PHPUnit_Framework_TestCase
 		$from = [];
 
 		$query = [
-			'isArchived' => [
-				"\$in" => ["\$null", "false"]
-			],
-			'basic.suburb' => [
-				"\$in" => ["Hatfield", "hatfield"]
+			'id' => [
+				"\$in" => ["9e67bfe5-3e5b-4399-a1d3-f13ad0978126"]
 			]
 		];
 

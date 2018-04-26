@@ -16,7 +16,7 @@ class Build extends Arc\Singleton
 		try{
 
 			// Connect
-			$db = new \PDO("mysql:host=".$this->get_config('host').";dbname=".$this->get_config('base'), $this->get_config('user'), $this->get_config('pass'));
+			$db = new \PDO("mysql:host=".$this->get_config('host').";dbname=".$this->get_config('base').";charset=utf8", $this->get_config('user'), $this->get_config('pass'));
 			$db->setAttribute(\PDO::ATTR_ERRMODE, \PDO::ERRMODE_EXCEPTION);
 
 			// SQL
@@ -34,6 +34,8 @@ class Build extends Arc\Singleton
 					id           INT(11) AUTO_INCREMENT PRIMARY KEY,
 					category     VARCHAR(90) NOT NULL,
 					updated_at   INT(11) NOT NULL)
+					ENGINE=MEMORY
+					DEFAULT CHARSET=utf8
 				";
 				$db->exec($q);
 			}
@@ -46,6 +48,8 @@ class Build extends Arc\Singleton
 					id           INT(11) AUTO_INCREMENT PRIMARY KEY,
 					province     VARCHAR(90) NOT NULL,
 					updated_at   INT(11) NOT NULL)
+					ENGINE=MEMORY
+					DEFAULT CHARSET=utf8
 				";
 				$db->exec($q);
 			}
@@ -59,6 +63,8 @@ class Build extends Arc\Singleton
 					province_id    INT(11) NOT NULL,
 					suburb         VARCHAR(90) NOT NULL,
 					updated_at     INT(11) NOT NULL)
+					ENGINE=MEMORY
+					DEFAULT CHARSET=utf8
 				";
 				$db->exec($q);
 			}
@@ -71,6 +77,8 @@ class Build extends Arc\Singleton
 					id           INT(11) AUTO_INCREMENT PRIMARY KEY,
 					city         VARCHAR(90) NOT NULL,
 					updated_at   INT(11) NOT NULL)
+					ENGINE=MEMORY
+					DEFAULT CHARSET=utf8
 				";
 				$db->exec($q);
 			}
@@ -95,6 +103,8 @@ class Build extends Arc\Singleton
 					 `updated_at`           INT(11) NOT NULL,
 					 `gmv_updated`          INT(11) DEFAULT 0
 					)
+					ENGINE=MEMORY
+					DEFAULT CHARSET=utf8
 				";
 				$db->exec($q);
 			}
@@ -111,6 +121,8 @@ class Build extends Arc\Singleton
 					 `displayAddress`       BLOB,
 					 `marketingBlurb`       BLOB
 					)
+					ENGINE=INNODB
+					DEFAULT CHARSET=utf8
 				";
 				$db->exec($q);
 			}
@@ -135,8 +147,11 @@ class Build extends Arc\Singleton
 					 `marketingHeading`   VARCHAR(550),
 					 `description`        BLOB,
 					 `updated_at`         INT(11) NOT NULL,
-					 `gmv_updated`        INT(11) DEFAULT 0
+					 `gmv_updated`        INT(11) DEFAULT 0,
+					 `gmrNotApplicable`   INT(11) DEFAULT 0
 					)
+					ENGINE=INNODB
+					DEFAULT CHARSET=utf8
 				";
 				$db->exec($q);
 			}
@@ -154,6 +169,8 @@ class Build extends Arc\Singleton
 					 `gmv_updated`        INT(11) DEFAULT 0,
 					 `removed`            INT(1) DEFAULT 0
 					)
+					ENGINE=INNODB
+					DEFAULT CHARSET=utf8
 				";
 				$db->exec($q);
 			}
@@ -171,6 +188,8 @@ class Build extends Arc\Singleton
 					 `gmv_updated`        INT(11) DEFAULT 0,
 					 `removed`            INT(1) DEFAULT 0
 					)
+					ENGINE=INNODB
+					DEFAULT CHARSET=utf8
 				";
 				$db->exec($q);
 			}
@@ -189,6 +208,8 @@ class Build extends Arc\Singleton
 					 `email`      VARCHAR(90),
 					 `updated_at` INT(11) NOT NULL
 					)
+					ENGINE=MEMORY
+					DEFAULT CHARSET=utf8
 				";
 				$db->exec($q);
 			}
@@ -201,7 +222,9 @@ class Build extends Arc\Singleton
 					 `pid` INT(11) NOT NULL,
 					 `bid` INT(11) NOT NULL,
 					 UNIQUE KEY `pid_bid`(`pid`, `bid`)
-					);
+					)
+					ENGINE=MEMORY
+					DEFAULT CHARSET=utf8
 				";
 				$db->exec($q);
 			}
@@ -219,6 +242,8 @@ class Build extends Arc\Singleton
 					 `email`      VARCHAR(90),
 					 `updated_at` INT(11) NOT NULL
 					)
+					ENGINE=MEMORY
+					DEFAULT CHARSET=utf8
 				";
 				$db->exec($q);
 			}
@@ -231,7 +256,9 @@ class Build extends Arc\Singleton
 					 `pid` INT(11) NOT NULL,
 					 `cid` INT(11) NOT NULL,
 					 UNIQUE KEY `pid_bid`(`pid`, `cid`)
-					);
+					)
+					ENGINE=MEMORY
+					DEFAULT CHARSET=utf8
 				";
 				$db->exec($q);
 			}

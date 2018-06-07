@@ -644,7 +644,7 @@ class Gmv extends Arc\Singleton
 				);
 				";
 
-				$this->cli->green($q);
+				//$this->cli->green($q);
 
 				// Insert
 				$db->query($q)->exec();

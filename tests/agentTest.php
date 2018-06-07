@@ -2,7 +2,7 @@
 
 use PHPUnit\Framework;
 
-class agentTest extends TestCase
+class agentTest extends PHPUnit_Framework_TestCase
 {
 	public function testFind()
 	{

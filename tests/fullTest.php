@@ -2,7 +2,7 @@
 
 use PHPUnit\Framework;
 
-class fullTest extends TestCase
+class fullTest extends PHPUnit_Framework_TestCase
 {
 	public function testFull()
 	{

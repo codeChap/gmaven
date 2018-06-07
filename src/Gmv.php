@@ -71,15 +71,15 @@ class Gmv extends Arc\Singleton
 
 		// Start fetching aggregates data
 		if($this->get_config('sync_aggregates')){
-			$totals['synchronized_property_types'] = $this->getCategories();
-			$totals['synchronized_provinces'] = $this->getProvinces();
-			$totals['synchronized_suburbs'] = $this->getSuburbs();
-			$totals['synchronized_cities'] = $this->getCities();
+			//$totals['synchronized_property_types'] = $this->getCategories();
+			//$totals['synchronized_provinces'] = $this->getProvinces();
+			//$totals['synchronized_suburbs'] = $this->getSuburbs();
+			//$totals['synchronized_cities'] = $this->getCities();
 		}
 
 		// Start fetching property data
 		if($this->get_config('sync_properties')){
-			$totals['synchronized_properties'] = $this->getProperties();
+			//$totals['synchronized_properties'] = $this->getProperties();
 		}
 
 		// Start fetching unit data
@@ -619,10 +619,10 @@ class Gmv extends Arc\Singleton
 				VALUES (
 				 ".$pid.",
 				 ".$catId.",
-				 ".(isset($u->unitDetails->gla)                      ? $u->unitDetails->gla : 0).",
-				 ".(isset($u->vacancy->unitDetails->gmr)             ? $u->vacancy->unitDetails->gmr : 0).",
-				 ".(isset($u->vacancy->unitDetails->netAskingRental) ? $u->vacancy->unitDetails->netAskingRental : 0).",
-				 ".(isset($u->vacancy->marketing->availableFrom)     ? round($u->vacancy->marketing->availableFrom) : 0).",
+				 ".((isset($u->unitDetails->gla) and is_numeric($u->unitDetails->gla))                                           ? $u->unitDetails->gla : 0).",
+				 ".((isset($u->vacancy->unitDetails->gmr) and is_numeric($u->vacancy->unitDetails->gmr))                         ? $u->vacancy->unitDetails->gmr : 0).",
+				 ".((isset($u->vacancy->unitDetails->netAskingRental) and is_numeric($u->vacancy->unitDetails->netAskingRental)) ? $u->vacancy->unitDetails->netAskingRental : 0).",
+				 ".((isset($u->vacancy->marketing->availableFrom) and is_numeric($u->vacancy->marketing->availableFrom))         ? round($u->vacancy->marketing->availableFrom) : 0).",
 				 '".$propertyId."',
 				 '".addslashes($u->id)."',
 				 ".((isset($u->unitDetails->unitId) and !empty($u->unitDetails->unitId))                             ? "'".addslashes($u->unitDetails->unitId)."'"              : 'NULL').",
@@ -634,6 +634,8 @@ class Gmv extends Arc\Singleton
 				 ".(isset($u->updated) ? round($u->_updated) : 0)."
 				);
 				";
+
+				$this->cli->green($q);
 
 				// Insert
 				$db->query($q)->exec();

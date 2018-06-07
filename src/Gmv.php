@@ -71,15 +71,15 @@ class Gmv extends Arc\Singleton
 
 		// Start fetching aggregates data
 		if($this->get_config('sync_aggregates')){
-			//$totals['synchronized_property_types'] = $this->getCategories();
-			//$totals['synchronized_provinces'] = $this->getProvinces();
-			//$totals['synchronized_suburbs'] = $this->getSuburbs();
-			//$totals['synchronized_cities'] = $this->getCities();
+			$totals['synchronized_property_types'] = $this->getCategories();
+			$totals['synchronized_provinces'] = $this->getProvinces();
+			$totals['synchronized_suburbs'] = $this->getSuburbs();
+			$totals['synchronized_cities'] = $this->getCities();
 		}
 
 		// Start fetching property data
 		if($this->get_config('sync_properties')){
-			//$totals['synchronized_properties'] = $this->getProperties();
+			$totals['synchronized_properties'] = $this->getProperties();
 		}
 
 		// Start fetching unit data

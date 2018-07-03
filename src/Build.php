@@ -120,7 +120,8 @@ class Build extends Arc\Singleton
 					 `customReferenceId`    VARCHAR(40),
 					 `displayAddress`       TEXT,
 					 `marketingBlurb`       TEXT,
-					 FULLTEXT(`displayAddress`, `marketingBlurb`)
+					 FULLTEXT(`displayAddress`),
+					 FULLTEXT(`marketingBlurb`)
 					)
 					ENGINE=INNODB
 					DEFAULT CHARSET=utf8

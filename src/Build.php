@@ -118,8 +118,9 @@ class Build extends Arc\Singleton
 					 `gmv_id`               VARCHAR(90),
 					 `name`                 VARCHAR(90),
 					 `customReferenceId`    VARCHAR(40),
-					 `displayAddress`       BLOB,
-					 `marketingBlurb`       BLOB
+					 `displayAddress`       TEXT,
+					 `marketingBlurb`       TEXT,
+					 FULLTEXT(`displayAddress`, `marketingBlurb`)
 					)
 					ENGINE=INNODB
 					DEFAULT CHARSET=utf8

@@ -46,8 +46,10 @@ class Gmv extends Arc\Singleton
 
 	/**
 	 * Start merging with Gmaven
+	 *
+	 * Int Time to start syncing from
 	 */
-	public function Sync()
+	public function Sync($fromTimestamp = false)
 	{
 		// Build required tables
 		if(true){
@@ -79,12 +81,12 @@ class Gmv extends Arc\Singleton
 
 		// Start fetching property data
 		if($this->get_config('sync_properties')){
-			$totals['synchronized_properties'] = $this->getProperties();
+			$totals['synchronized_properties'] = $this->getProperties($fromTimestamp);
 		}
 
 		// Start fetching unit data
 		if($this->get_config('sync_units')){
-			$totals['synchronized_units'] = $this->getUnits();
+			$totals['synchronized_units'] = $this->getUnits($fromTimestamp);
 		}
 
 		// Start fetching images
@@ -109,47 +111,6 @@ class Gmv extends Arc\Singleton
 		// Done
 		return [
 			'time'   => ceil((time()-$this->time) / 60) . ' minutes.',
-			'totals' => $totals,
-		];
-	}
-
-	/**
-	 * Do a patial merge with Gmaven
-	 *
-	 * @param Int Number of hours in the past to sync by. Your cronjob should then update by this number so every 2 hours by default
-	 *
-	 * @return Int Total
-	 */
-	public function partial($hours = 2)
-	{
-		$lastSyncDate = strtotime("-".$hours." hours");
-
-		// Start fetching images - good to go
-		if(true){
-			$totals['synchronized_images'] = $this->getImages();
-		}
-
-		// Start fetching aggregates data
-		if(false){
-			$totals['property_types'] = $this->getCategories();
-			$totals['provinces'] = $this->getProvinces();
-			$totals['suburbs_of_those_provinces'] = $this->getSuburbs();
-			$totals['cities_of_those_provinces'] = $this->getCities();
-		}
-
-		// Start fetching property data
-		if(false){
-			$totals['synchronized_properties'] = $this->getProperties($lastSyncDate);
-		}
-
-		// Start fetching unit data
-		if(false){
-			$totals['synchronized_units'] = $this->getUnits($lastSyncDate);
-		}
-
-		// Done
-		return [
-			'time'   => ceil(time()-$this->time) . ' seconds.',
 			'totals' => $totals,
 		];
 	}
@@ -465,10 +426,36 @@ class Gmv extends Arc\Singleton
 			}
 
 			// Find province, city, suburb and category id
-			$catId = $db->query("SELECT `id` FROM `#gmaven_categories` WHERE `category` = '".(addslashes($p->basic->primaryCategory))."'")->get_one('id');
-			$pid   = $db->query("SELECT `id` FROM `#gmaven_provinces` WHERE `province`  = '".(addslashes($p->basic->province))."'")->get_one('id');
-			$cid   = $db->query("SELECT `id` FROM `#gmaven_cities` WHERE `city`         = '".(addslashes($p->basic->city))."'")->get_one('id');
-			$sid   = $db->query("SELECT `id` FROM `#gmaven_suburbs` WHERE `suburb`      = '".(addslashes($p->basic->suburb))."'")->get_one('id');
+			if(isset($p->basic->primaryCategory) and !empty($p->basic->primaryCategory)){
+				$catId = $db->query("SELECT `id` FROM `#gmaven_categories` WHERE `category` = '".(addslashes($p->basic->primaryCategory))."'")->get_one('id');
+			}else{
+				continue;
+			}
+			if(isset($p->basic->province) and !empty($p->basic->province)){
+				$pid   = $db->query("SELECT `id` FROM `#gmaven_provinces` WHERE `province` = '".(addslashes($p->basic->province))."'")->get_one('id');
+			}
+			else{
+				continue;
+			}
+			if(isset($p->basic->city) and !empty($p->basic->city)){
+				$cid   = $db->query("SELECT `id` FROM `#gmaven_cities` WHERE `city` = '".(addslashes($p->basic->city))."'")->get_one('id');
+			}else{
+				continue;
+			}
+			if(isset($p->basic->suburb) and !empty($p->basic->suburb)){
+				$sid   = $db->query("SELECT `id` FROM `#gmaven_suburbs` WHERE `suburb` = '".(addslashes($p->basic->suburb))."'")->get_one('id');
+			}
+			else{
+				continue;
+			}
+
+			// Check geo points
+			if( ! isset($p->geo->lon) or empty($p->geo->lon)){
+				continue;
+			}
+			if( ! isset($p->geo->lat) or empty($p->geo->lat)){
+				continue;
+			}
 
 			// Insert data
 			$q = "
@@ -486,8 +473,8 @@ class Gmv extends Arc\Singleton
 			(`did`, `lon`, `lat`, `gla`, `currentVacantArea`, `weightedAskingRental`, `for_sale`, `category_id`, `province_id`, `city_id`, `suburb_id` ,`updated_at`, `gmv_updated`)
 			VALUES (
 			 LAST_INSERT_ID(),
-			 ".($p->geo->lon == 0 ? 'NULL' : $p->geo->lon).",
-			 ".($p->geo->lat == 0 ? 'NULL' : $p->geo->lat).",
+			 ".(isset($p->geo->lon) and $p->geo->lon > 0  ? $p->geo->lon                      : 'NULL').",
+			 ".(isset($p->geo->lat) and $p->geo->lat > 0  ? $p->geo->lat                      : 'NULL').",
 			 ".(!empty($p->basic->gla)                    ? $p->basic->gla                    : 0).",
 			 ".(!empty($p->vacancy->currentVacantArea)    ? $p->vacancy->currentVacantArea    : 0).",
 			 ".(!empty($p->vacancy->weightedAskingRental) ? $p->vacancy->weightedAskingRental : 0).",
@@ -534,9 +521,9 @@ class Gmv extends Arc\Singleton
 
 		// Partial or full sync @todo Remove, record a timestamp instead
 		if($fromWhen){
-			//$from = [
-			//	"_updated" => ["\$gte" => $fromWhen]
-			//];
+			$from = [
+				"_updated" => ["\$gte" => $fromWhen]
+			];
 		}
 
 		// Call Gmaven to get total properties
@@ -723,7 +710,7 @@ class Gmv extends Arc\Singleton
 	 * @param  
 	 * @return 
 	 */
-	function getUnitImages()
+	public function getUnitImages()
 	{
 		// Call Gmaven to get total units
 		$r = $this->post('data/content/entity/propertyUnit/search', [

@@ -90,8 +90,8 @@ class Build extends Arc\Singleton
 					CREATE TABLE `".$table."`(
 					 `id`                   INT(11) AUTO_INCREMENT PRIMARY KEY,
 					 `did`                  INT(11) NOT NULL COMMENT 'Details ID',
-					 `lon`                  DECIMAL(9,6) DEFAULT NULL,
-					 `lat`                  DECIMAL(9,6) DEFAULT NULL,
+					 `lon`                  DECIMAL(9,7) DEFAULT NULL,
+					 `lat`                  DECIMAL(9,7) DEFAULT NULL,
 					 `gla`                  INT(9) DEFAULT 0,
 					 `currentVacantArea`    INT(9) DEFAULT 0,
 					 `weightedAskingRental` FLOAT(9,9) DEFAULT 0.000000,
@@ -121,7 +121,8 @@ class Build extends Arc\Singleton
 					 `displayAddress`       TEXT,
 					 `marketingBlurb`       TEXT,
 					 FULLTEXT(`displayAddress`),
-					 FULLTEXT(`marketingBlurb`)
+					 FULLTEXT(`marketingBlurb`),
+					 INDEX(`gmv_id`)
 					)
 					ENGINE=INNODB
 					DEFAULT CHARSET=utf8
@@ -169,7 +170,8 @@ class Build extends Arc\Singleton
 					 `rating`             INT(2) DEFAULT 0,
 					 `updated_at`         INT(11) NOT NULL,
 					 `gmv_updated`        INT(11) DEFAULT 0,
-					 `removed`            INT(1) DEFAULT 0
+					 `removed`            INT(1) DEFAULT 0,
+					 INDEX(`entityDomainKey`)
 					)
 					ENGINE=INNODB
 					DEFAULT CHARSET=utf8

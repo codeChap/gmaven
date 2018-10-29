@@ -473,8 +473,8 @@ class Gmv extends Arc\Singleton
 			(`did`, `lon`, `lat`, `gla`, `currentVacantArea`, `weightedAskingRental`, `for_sale`, `category_id`, `province_id`, `city_id`, `suburb_id` ,`updated_at`, `gmv_updated`)
 			VALUES (
 			 LAST_INSERT_ID(),
-			 ".(isset($p->geo->lon) and $p->geo->lon > 0  ? $p->geo->lon                      : 'NULL').",
-			 ".(isset($p->geo->lat) and $p->geo->lat > 0  ? $p->geo->lat                      : 'NULL').",
+			 ".$p->geo->lon.",
+			 ".$p->geo->lat.",
 			 ".(!empty($p->basic->gla)                    ? $p->basic->gla                    : 0).",
 			 ".(!empty($p->vacancy->currentVacantArea)    ? $p->vacancy->currentVacantArea    : 0).",
 			 ".(!empty($p->vacancy->weightedAskingRental) ? $p->vacancy->weightedAskingRental : 0).",

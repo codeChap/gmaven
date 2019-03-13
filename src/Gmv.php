@@ -312,8 +312,8 @@ class Gmv extends Arc\Singleton
 	/**
 	 * Get all properties and re-insert them into the database
 	 *
-	 * Total results may differ from what you see in CRE, Gmaven apply filters to the API to ensure that no obviously "incomplete" 
-	 * properties are displayed (e.g. ones that're missing critical location or price information) which would account for this 
+	 * Total results may differ from what you see in CRE, Gmaven apply filters to the API to ensure that no obviously "incomplete"
+	 * properties are displayed (e.g. ones that're missing critical location or price information) which would account for this
 	 * difference.
 	 *
 	 * @param Date of when to start syncing
@@ -326,14 +326,12 @@ class Gmv extends Arc\Singleton
 		$query = [];
 		$from = [];
 
-		// TEST
-		/*
+		// Ignore archived results
 		$query = [
-			'id' => [
-				"\$in" => ["9e67bfe5-3e5b-4399-a1d3-f13ad0978126"]
+			'isArchived' => [
+				"\$in" => ["\$null", "false"]
 			]
 		];
-		*/
 
 		// Partial or full sync
 		if($fromWhen){
@@ -470,7 +468,7 @@ class Gmv extends Arc\Singleton
 			 ".((isset($p->basic->marketingBlurb) and !empty($p->basic->marketingBlurb))        ? "'".addslashes($p->basic->marketingBlurb)."'"    : 'NULL')."
 			);
 			INSERT INTO `#gmaven_properties`
-			(`did`, `lon`, `lat`, `gla`, `currentVacantArea`, `weightedAskingRental`, `for_sale`, `category_id`, `province_id`, `city_id`, `suburb_id` ,`updated_at`, `gmv_updated`)
+			(`did`, `lon`, `lat`, `gla`, `currentVacantArea`, `weightedAskingRental`, `for_sale`, `askingPrice`, `category_id`, `province_id`, `city_id`, `suburb_id` ,`updated_at`, `gmv_updated`)
 			VALUES (
 			 LAST_INSERT_ID(),
 			 ".$p->geo->lon.",
@@ -479,6 +477,7 @@ class Gmv extends Arc\Singleton
 			 ".(!empty($p->vacancy->currentVacantArea)    ? $p->vacancy->currentVacantArea    : 0).",
 			 ".(!empty($p->vacancy->weightedAskingRental) ? $p->vacancy->weightedAskingRental : 0).",
 			 ".(!empty($p->basic->forSale)                ? $p->basic->forSale                : 0).",
+			 ".(!empty($p->sales->askingPrice)            ? $p->sales->askingPrice            : 0).",
 			 ".$catId.",
 			 ".$pid.",
 			 ".$cid.",
@@ -707,8 +706,8 @@ class Gmv extends Arc\Singleton
 	/**
 	 * Sync unit images
 	 *
-	 * @param  
-	 * @return 
+	 * @param
+	 * @return
 	 */
 	public function getUnitImages()
 	{
@@ -833,7 +832,7 @@ class Gmv extends Arc\Singleton
 	}
 
 	/**
-	 * 
+	 *
 	 */
 	public function getContacts()
 	{
@@ -1115,11 +1114,11 @@ class Gmv extends Arc\Singleton
 
 			// Action by content type
 			switch($contentType){
-				
+
 				// Json
 				case 'application/json; charset=utf-8' :
 				return json_decode($response->getBody()->getContents(), false);
-				
+
 				// Unknown
 				default :
 				return $response->getBody()->getContents();

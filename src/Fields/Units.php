@@ -2,6 +2,7 @@
 return [
 	'id',
 	'_updated',
+	'isArchived',
 	'propertyId',
 	'unitDetails.gla',
 	'unitDetails.customReferenceId',

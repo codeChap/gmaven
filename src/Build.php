@@ -96,7 +96,7 @@ class Build extends Arc\Singleton
 					 `currentVacantArea`    INT(9) DEFAULT 0,
 					 `weightedAskingRental` FLOAT(9,9) DEFAULT 0.000000,
 					 `for_sale`             TINYINT(1) DEFAULT 0,
-					 `askingPrice`          INT(9) DEFAULT 0,
+					 `asking_price`         INT(9) DEFAULT 0,
 					 `category_id`          INT(11) DEFAULT 0,
 					 `province_id`          INT(11) DEFAULT 0,
 					 `city_id`              INT(11) DEFAULT 0,

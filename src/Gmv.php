@@ -74,9 +74,9 @@ class Gmv extends Arc\Singleton
 		// Start fetching aggregates data
 		if($this->get_config('sync_aggregates')){
 			$totals['synchronized_property_types'] = $this->getCategories();
-			$totals['synchronized_provinces'] = $this->getProvinces();
-			$totals['synchronized_suburbs'] = $this->getSuburbs();
-			$totals['synchronized_cities'] = $this->getCities();
+			$totals['synchronized_provinces']      = $this->getProvinces();
+			$totals['synchronized_suburbs']        = $this->getSuburbs();
+			$totals['synchronized_cities']         = $this->getCities();
 		}
 
 		// Start fetching property data
@@ -324,11 +324,14 @@ class Gmv extends Arc\Singleton
 	{
 		// Vars
 		$query = [];
-		$from = [];
+		$from  = [];
 
 		// Ignore archived results
 		$query = [
 			'isArchived' => [
+				"\$in" => ["\$null", "false"]
+			],
+			'sales.privateStock' => [
 				"\$in" => ["\$null", "false"]
 			]
 		];
@@ -468,7 +471,7 @@ class Gmv extends Arc\Singleton
 			 ".((isset($p->basic->marketingBlurb) and !empty($p->basic->marketingBlurb))        ? "'".addslashes($p->basic->marketingBlurb)."'"    : 'NULL')."
 			);
 			INSERT INTO `#gmaven_properties`
-			(`did`, `lon`, `lat`, `gla`, `currentVacantArea`, `weightedAskingRental`, `for_sale`, `askingPrice`, `category_id`, `province_id`, `city_id`, `suburb_id` ,`updated_at`, `gmv_updated`)
+			(`did`, `lon`, `lat`, `gla`, `currentVacantArea`, `weightedAskingRental`, `for_sale`, `asking_price`, `category_id`, `province_id`, `city_id`, `suburb_id` ,`updated_at`, `gmv_updated`)
 			VALUES (
 			 LAST_INSERT_ID(),
 			 ".$p->geo->lon.",

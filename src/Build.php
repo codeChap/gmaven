@@ -140,7 +140,7 @@ class Build extends Arc\Singleton
 					 `pid`                VARCHAR(90) NOT NULL,
 					 `gmv_id`             VARCHAR(90) NOT NULL,
 					 `propertyId`         VARCHAR(90),
-					 `unitId`             VARCHAR(90),
+					 `unitId`             VARCHAR(220),
 					 `customReferenceId`  VARCHAR(40),
 					 `category_id`        INT(11) DEFAULT 0,
 					 `gla`                INT(9) DEFAULT 0,
@@ -268,7 +268,20 @@ class Build extends Arc\Singleton
 				$db->exec($q);
 			}
 
-			// Close
+			// Build featured table
+			$table = $pfx."gmaven_featured";
+			if( ! in_array($table, $r) ){
+				$q = "
+					CREATE TABLE `".$table."` (
+					 `id` int(11) NOT NULL
+					)
+					ENGINE=InnoDB
+					DEFAULT CHARSET=utf8
+				";
+				$db->exec($q);
+			}
+
+		// Close
 		$db = null;
 		}
 		catch(\PDOException $e){

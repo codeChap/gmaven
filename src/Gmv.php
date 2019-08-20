@@ -380,7 +380,7 @@ class Gmv extends Arc\Singleton
 				'office.amenities.exists',
 				'geo.lat',
 				'geo.lon',
-				'vacancy.currentVacantArea',
+				//'vacancy.currentVacantArea',
 				'vacancy.weightedAskingRental',
 				'sales.askingPrice',
 				'sales.valueM2'
@@ -477,7 +477,7 @@ class Gmv extends Arc\Singleton
 			 ".$p->geo->lon.",
 			 ".$p->geo->lat.",
 			 ".(!empty($p->basic->gla)                    ? $p->basic->gla                    : 0).",
-			 ".(!empty($p->vacancy->currentVacantArea)    ? $p->vacancy->currentVacantArea    : 0).",
+			 ".(!empty($p->vacancy->currentVacantArea)    ? $p->vacancy->currentVacantArea    : 0).", // Depricated
 			 ".(!empty($p->vacancy->weightedAskingRental) ? $p->vacancy->weightedAskingRental : 0).",
 			 ".(!empty($p->basic->forSale)                ? $p->basic->forSale                : 0).",
 			 ".(!empty($p->sales->askingPrice)            ? $p->sales->askingPrice            : 0).",

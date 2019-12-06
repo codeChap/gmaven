@@ -380,7 +380,6 @@ class Gmv extends Arc\Singleton
 				'office.amenities.exists',
 				'geo.lat',
 				'geo.lon',
-				//'vacancy.currentVacantArea',
 				'vacancy.weightedAskingRental',
 				'sales.askingPrice',
 				'sales.valueM2'
@@ -403,6 +402,9 @@ class Gmv extends Arc\Singleton
 
 		// Loop over results
 		foreach($r->list as $i => $p){
+
+			// Update progress bar
+			$progress->advance();
 
 			// Try find the entry
 			if($fromWhen){
@@ -495,13 +497,167 @@ class Gmv extends Arc\Singleton
 
 			// Insert
 			$db->query($q)->exec();
-
-			// Update progress bar
-			$progress->advance();
 		}
 
 		// Done
 		return $t;
+	}
+
+	/**	
+	 * 
+	 */
+	public function getUnits($fromWhen = false)
+	{
+		// Fire up database and get properties
+		$db = Db::forge($this->get_config());
+		$r = $db->query("SELECT `gmv_id` FROM `#gmaven_property_details`")->get();
+
+		// Clear out old records
+		if($fromWhen == false){
+			$db->query("TRUNCATE TABLE `#gmaven_units`")->exec();
+		}
+
+		// Do not max out Gmaven
+		$sets = array_chunk($r, ceil(count($r) / 2));
+
+		// Vars
+		$query = [];
+		$from = [];
+		$rT = 0;
+
+		// We have to do this one by one because Gmaven currently maxes out
+		foreach($sets as $k => $arr){
+
+			// Info
+			$this->cli->green('Fetching '. ($k+1) . ' of ' . count($sets).' unit sets.');
+
+			// Build array of properties
+			$gmvIds = [];
+			foreach($arr as $v){
+				$gmvIds[] = $v['gmv_id'];
+			}
+
+			// Query
+			$query = [
+				'isArchived' => [
+					"\$in" => ["\$null", "false"]
+				],
+				'propertyId' => [
+					"\$in" => $gmvIds
+				]
+			];
+
+			// Call Gmaven to get total properties
+			$r = $this->post('data/custom/propertyUnit/search', [
+				'sourceFields' => ['id'],
+				'query'        => $query + $from,
+				'page'         => ['number' => 1, 'size' => 1]
+			]);
+			$t = $r->md->totalResults;
+
+			// Now pull everything
+			$r = $this->post('data/custom/propertyUnit/search', [
+				'sourceFields' => [
+					'id',
+					'_updated',
+					'isArchived',
+					'propertyId',
+					'unitDetails.unitId',
+					'unitDetails.customReferenceId',
+					'unitDetails.gla',
+					'unitDetails.primaryCategory',
+					'vacancy.marketing.availableType',
+					'vacancy.marketing.availableFrom',
+					'vacancy.marketing.noticePeriod',
+					'vacancy.unitDetails.gmr',
+					'vacancy.unitDetails.netAskingRental',
+					'vacancy.sales.marketingHeading',
+					'vacancy.sales.description',
+					'vacancy.unitManagement.status'
+				],
+				'query' => $query + $from,
+				'page'  => ['number' => 1, 'size' => $t]
+			]);
+
+			// Find total
+			$rT = $rT + $t;
+
+			// Progress bar
+			$progress = $this->cli->progress()->total($t);
+
+			// Loop over results
+			foreach($r->list as $i => $u){
+
+				// Update progress bar
+				$progress->advance();
+
+				// Defaults
+				$pid = 0;
+				$catId = 0;
+
+				// Go
+				if(isset($u->propertyId) and !empty($u->propertyId) ){
+
+					// Find Property id
+					if(isset($u->propertyId) and $propertyId = addslashes($u->propertyId)){
+						
+						// Build query
+						$q = '
+							SELECT P.`id` FROM `#gmaven_property_details` D
+							LEFT JOIN `#gmaven_properties` P ON P.`did` = D.`id`
+							WHERE `gmv_id` = "'.$propertyId.'"';
+
+						// Execute query
+						$pid = $db->query($q)->get_one('id');
+
+						if(empty($pid)){
+							$pid = 0;
+						}
+					}
+
+					// Find category id
+					if(isset($u->unitDetails->primaryCategory) and $catgoryId = addslashes($u->unitDetails->primaryCategory)){
+						$catId = $db->query("SELECT `id` FROM `#gmaven_categories` WHERE `category` = '".$catgoryId."'")->get_one('id');
+					}
+
+					// Check for existing entry
+					if($eId = $db->query("SELECT `id` FROM `#gmaven_units` WHERE `gmv_id` = '".$u->id."'")->get_one('id')){
+						$db->query("DELETE FROM `#gmaven_units` WHERE `id` = ".$eId)->exec();
+					}
+
+					// Insert data
+					$q = "
+					INSERT INTO `#gmaven_units`
+					(`pid`, `category_id`, `gla`, `gmr`, `netAskingRental`, `availableFrom`, `propertyId`, `gmv_id`, `unitId`, `customReferenceId`, `availableType`, `marketingHeading`, `description`, `updated_at`, `gmv_updated`)
+					VALUES (
+					".$pid.",
+					".$catId.",
+					".((isset($u->unitDetails->gla) and is_numeric($u->unitDetails->gla))                                           ? $u->unitDetails->gla : 0).",
+					".((isset($u->vacancy->unitDetails->gmr) and is_numeric($u->vacancy->unitDetails->gmr))                         ? $u->vacancy->unitDetails->gmr : 0).",
+					".((isset($u->vacancy->unitDetails->netAskingRental) and is_numeric($u->vacancy->unitDetails->netAskingRental)) ? $u->vacancy->unitDetails->netAskingRental : 0).",
+					".((isset($u->vacancy->marketing->availableFrom) and is_numeric($u->vacancy->marketing->availableFrom))         ? round($u->vacancy->marketing->availableFrom) : 0).",
+					'".$propertyId."',
+					'".addslashes($u->id)."',
+					".((isset($u->unitDetails->unitId) and !empty($u->unitDetails->unitId))                             ? "'".addslashes($u->unitDetails->unitId)."'"              : 'NULL').",
+					".((isset($u->unitDetails->customReferenceId) and !empty($u->unitDetails->customReferenceId))       ? "'".addslashes($u->unitDetails->customReferenceId)."'"    : 'NULL').",
+					".((isset($u->vacancy->marketing->availableType) and !empty($u->vacancy->marketing->availableType)) ? "'".addslashes($u->vacancy->marketing->availableType)."'" : 'NULL').",
+					".((isset($u->vacancy->sales->marketingHeading) and !empty($u->vacancy->sales->marketingHeading))   ? "'".addslashes($u->vacancy->sales->marketingHeading)."'"  : 'NULL').",
+					".((isset($u->vacancy->sales->description) and !empty($u->vacancy->sales->description))             ? "'".addslashes($u->vacancy->sales->description)."'"       : 'NULL').",
+					".$this->time.",
+					".(isset($u->updated) ? round($u->_updated) : 0)."
+					);
+					";
+
+					//$this->cli->green($q);
+
+					// Insert
+					$db->query($q)->exec();
+				}
+			}
+		}
+
+		// Return totals
+		return $rT;
 	}
 
 	/**
@@ -509,7 +665,7 @@ class Gmv extends Arc\Singleton
 	 *
 	 * @param Int Timestamp of when to start syncing from
 	 */
-	public function getUnits($fromWhen = false)
+	public function getUnitsss($fromWhen = false)
 	{
 		// Vars
 		$query = [];
@@ -587,22 +743,26 @@ class Gmv extends Arc\Singleton
 
 			if(isset($u->propertyId) and !empty($u->propertyId) ){
 
-				// Find category id
-				if(isset($u->unitDetails->primaryCategory) and $catgoryId = addslashes($u->unitDetails->primaryCategory)){
-					$catId = $db->query("SELECT `id` FROM `#gmaven_categories` WHERE `category` = '".$catgoryId."'")->get_one('id');
-				}
-
 				// Find Property id
 				if(isset($u->propertyId) and $propertyId = addslashes($u->propertyId)){
-					$pid = $db->query("
+					
+					// Build query
+					$q = '
 						SELECT P.`id` FROM `#gmaven_property_details` D
 						LEFT JOIN `#gmaven_properties` P ON P.`did` = D.`id`
-						WHERE `gmv_id` = '".$propertyId."'"
-					)->get_one('id');
+						WHERE `gmv_id` = "'.$propertyId.'"';
+
+					// Execute query
+					$pid = $db->query($q)->get_one('id');
 
 					if(empty($pid)){
 						$pid = 0;
 					}
+				}
+
+				// Find category id
+				if(isset($u->unitDetails->primaryCategory) and $catgoryId = addslashes($u->unitDetails->primaryCategory)){
+					$catId = $db->query("SELECT `id` FROM `#gmaven_categories` WHERE `category` = '".$catgoryId."'")->get_one('id');
 				}
 
 				// Check for existing entry

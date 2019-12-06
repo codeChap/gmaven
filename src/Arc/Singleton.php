@@ -23,13 +23,13 @@ abstract class Singleton
 	* @var array $config Default config array.
 	*/
 	protected $config = [
-		'sync_aggregates'             => true,
-		'sync_properties'             => true,
-		'sync_units'                  => true,
-		'sync_images'                 => true,
-		'sync_images_units'           => true,
-		'sync_brokers_to_properties'  => true,
-		'sync_properties_to_contacts' => true
+		'sync_aggregates'             => 1,
+		'sync_properties'             => 1,
+		'sync_units'                  => 1,
+		'sync_images'                 => 1,
+		'sync_images_units'           => 1,
+		'sync_brokers_to_properties'  => 1,
+		'sync_properties_to_contacts' => 1
 	];
 
 	/**

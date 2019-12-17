@@ -539,9 +539,9 @@ class Gmv extends Arc\Singleton
 
 			// Query
 			$query = [
-				'isArchived' => [
-					"\$in" => ["\$null", "false"]
-				],
+				//'isArchived' => [
+				//	"\$in" => ["\$null", "false"]
+				//],
 				'propertyId' => [
 					"\$in" => $gmvIds
 				]
@@ -560,7 +560,6 @@ class Gmv extends Arc\Singleton
 				'sourceFields' => [
 					'id',
 					'_updated',
-					'isArchived',
 					'propertyId',
 					'unitDetails.unitId',
 					'unitDetails.customReferenceId',
@@ -573,7 +572,9 @@ class Gmv extends Arc\Singleton
 					'vacancy.unitDetails.netAskingRental',
 					'vacancy.sales.marketingHeading',
 					'vacancy.sales.description',
-					'vacancy.unitManagement.status'
+					'vacancy.unitManagement.status',
+					'vacancy.leasingStatus',
+					'sales.salesStatus'
 				],
 				'query' => $query + $from,
 				'page'  => ['number' => 1, 'size' => $t]
@@ -628,7 +629,25 @@ class Gmv extends Arc\Singleton
 					// Insert data
 					$q = "
 					INSERT INTO `#gmaven_units`
-					(`pid`, `category_id`, `gla`, `gmr`, `netAskingRental`, `availableFrom`, `propertyId`, `gmv_id`, `unitId`, `customReferenceId`, `availableType`, `marketingHeading`, `description`, `updated_at`, `gmv_updated`)
+					(
+					 `pid`,
+					 `category_id`,
+					 `gla`,
+					 `gmr`,
+					 `netAskingRental`,
+					 `availableFrom`,
+					 `propertyId`,
+					 `gmv_id`,
+					 `unitId`,
+					 `customReferenceId`,
+					 `availableType`,
+					 `marketingHeading`,
+					 `description`,
+					 `vacancy`,
+					 `sales`,
+					 `updated_at`,
+					 `gmv_updated`
+					)
 					VALUES (
 					".$pid.",
 					".$catId.",
@@ -638,17 +657,17 @@ class Gmv extends Arc\Singleton
 					".((isset($u->vacancy->marketing->availableFrom) and is_numeric($u->vacancy->marketing->availableFrom))         ? round($u->vacancy->marketing->availableFrom) : 0).",
 					'".$propertyId."',
 					'".addslashes($u->id)."',
-					".((isset($u->unitDetails->unitId) and !empty($u->unitDetails->unitId))                             ? "'".addslashes($u->unitDetails->unitId)."'"              : 'NULL').",
+					".((isset($u->unitDetails->unitId) and !empty($u->unitDetails->unitId))                             ? "'".addslashes($u->unitDetails->unitId)."'"               : 'NULL').",
 					".((isset($u->unitDetails->customReferenceId) and !empty($u->unitDetails->customReferenceId))       ? "'".addslashes($u->unitDetails->customReferenceId)."'"    : 'NULL').",
 					".((isset($u->vacancy->marketing->availableType) and !empty($u->vacancy->marketing->availableType)) ? "'".addslashes($u->vacancy->marketing->availableType)."'" : 'NULL').",
 					".((isset($u->vacancy->sales->marketingHeading) and !empty($u->vacancy->sales->marketingHeading))   ? "'".addslashes($u->vacancy->sales->marketingHeading)."'"  : 'NULL').",
 					".((isset($u->vacancy->sales->description) and !empty($u->vacancy->sales->description))             ? "'".addslashes($u->vacancy->sales->description)."'"       : 'NULL').",
+					".((isset($u->vacancy->leasingStatus) and !empty($u->vacancy->leasingStatus))                       ? "'".addslashes($u->vacancy->leasingStatus)."'"            : 'NULL').",
+					".((isset($u->sales->salesStatus) and !empty($u->sales->salesStatus))                               ? "'".addslashes($u->sales->salesStatus)."'"                : 'NULL').",
 					".$this->time.",
 					".(isset($u->updated) ? round($u->_updated) : 0)."
 					);
 					";
-
-					//$this->cli->green($q);
 
 					// Insert
 					$db->query($q)->exec();

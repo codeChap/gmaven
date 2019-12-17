@@ -147,9 +147,11 @@ class Build extends Arc\Singleton
 					 `gmr`                INT(9) DEFAULT 0,
 					 `netAskingRental`    INT(9) DEFAULT 0,
 					 `availableType`      VARCHAR(90),
-					 `availableFrom`      INT(11),
+					 `availableFrom`      VARCHAR(90),
 					 `marketingHeading`   VARCHAR(550),
 					 `description`        BLOB,
+					 `vacancy`            VARCHAR(90),
+					 `sales`              VARCHAR(90),
 					 `updated_at`         INT(11) NOT NULL,
 					 `gmv_updated`        INT(11) DEFAULT 0,
 					 `gmrNotApplicable`   INT(11) DEFAULT 0

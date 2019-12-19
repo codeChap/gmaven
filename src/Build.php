@@ -94,7 +94,7 @@ class Build extends Arc\Singleton
 					 `lat`                  DECIMAL(9,7) DEFAULT NULL,
 					 `gla`                  INT(9) DEFAULT 0,
 					 `currentVacantArea`    INT(9) DEFAULT 0,
-					 `weightedAskingRental` VARCHAR(9) DEFAULT 0,
+					 `weightedAskingRental` INT(9) DEFAULT 0,
 					 `for_sale`             TINYINT(1) DEFAULT 0,
 					 `asking_price`         INT(9) DEFAULT 0,
 					 `category_id`          INT(11) DEFAULT 0,
@@ -125,7 +125,7 @@ class Build extends Arc\Singleton
 					 FULLTEXT(`marketingBlurb`),
 					 INDEX(`gmv_id`)
 					)
-					ENGINE=INNODB
+					ENGINE=ARIA
 					DEFAULT CHARSET=utf8
 				";
 				$db->exec($q);
@@ -136,30 +136,33 @@ class Build extends Arc\Singleton
 			if( ! in_array($table, $r) ){
 				$q = "
 					CREATE TABLE `".$table."`(
-					 `id`                 INT(11) AUTO_INCREMENT PRIMARY KEY,
-					 `pid`                VARCHAR(90) NOT NULL,
-					 `gmv_id`             VARCHAR(90) NOT NULL,
-					 `propertyId`         VARCHAR(90),
-					 `unitId`             VARCHAR(220),
-					 `customReferenceId`  VARCHAR(40),
-					 `category_id`        INT(11) DEFAULT 0,
-					 `gla`                INT(9) DEFAULT 0,
-					 `gmr`                INT(9) DEFAULT 0,
-					 `netAskingRental`    INT(9) DEFAULT 0,
-					 `availableType`      VARCHAR(90),
-					 `availableFrom`      VARCHAR(90),
-					 `marketingHeading`   VARCHAR(550),
-					 `description`        BLOB,
-					 `vacancy`            VARCHAR(90),
-					 `sales`              VARCHAR(90),
-					 `updated_at`         INT(11) NOT NULL,
-					 `gmv_updated`        INT(11) DEFAULT 0,
-					 `gmrNotApplicable`   INT(11) DEFAULT 0
+					 `id`                INT(11) AUTO_INCREMENT,
+					 `pid`               INT(90) NOT NULL,
+					 `gmv_id`            VARCHAR(90) NOT NULL,
+					 `propertyId`        VARCHAR(90),
+					 `unitId`            VARCHAR(220),
+					 `customReferenceId` VARCHAR(220),
+					 `category_id`       INT(11) DEFAULT 0,
+					 `gla`               INT(9) DEFAULT 0,
+					 `gmr`               INT(9) DEFAULT 0,
+					 `netAskingRental`   INT(9) DEFAULT 0,
+					 `availableType`     VARCHAR(90),
+					 `availableFrom`     VARCHAR(90),
+					 `marketingHeading`  BLOB,
+					 `description`       BLOB,
+					 `vacancy`           VARCHAR(90) NOT NULL,
+					 `sales`             VARCHAR(90),
+					 `updated_at`        INT(11) NOT NULL,
+					 `gmv_updated`       INT(11) DEFAULT 0,
+					 PRIMARY KEY(`id`),
+					 INDEX(`vacancy`, `pid`)
 					)
-					ENGINE=INNODB
+					ENGINE=ARIA
 					DEFAULT CHARSET=utf8
 				";
 				$db->exec($q);
+
+
 			}
 
 			// Build properties table
@@ -176,7 +179,7 @@ class Build extends Arc\Singleton
 					 `removed`            INT(1) DEFAULT 0,
 					 INDEX(`entityDomainKey`)
 					)
-					ENGINE=INNODB
+					ENGINE=ARIA
 					DEFAULT CHARSET=utf8
 				";
 				$db->exec($q);
@@ -195,7 +198,7 @@ class Build extends Arc\Singleton
 					 `gmv_updated`        INT(11) DEFAULT 0,
 					 `removed`            INT(1) DEFAULT 0
 					)
-					ENGINE=INNODB
+					ENGINE=ARIA
 					DEFAULT CHARSET=utf8
 				";
 				$db->exec($q);
@@ -277,7 +280,7 @@ class Build extends Arc\Singleton
 					CREATE TABLE `".$table."` (
 					 `id` int(11) NOT NULL
 					)
-					ENGINE=InnoDB
+					ENGINE=MEMORY
 					DEFAULT CHARSET=utf8
 				";
 				$db->exec($q);

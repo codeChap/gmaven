@@ -333,7 +333,8 @@ class Gmv extends Arc\Singleton
 			],
 			'sales.privateStock' => [
 				"\$in" => ["\$null", "false"]
-			]
+			],
+			//'id' => ["\$in" => ['3597bdf5-bf22-4bb0-8ea7-62b26c92077b']]
 		];
 
 		// Partial or full sync
@@ -403,6 +404,8 @@ class Gmv extends Arc\Singleton
 		// Loop over results
 		foreach($r->list as $i => $p){
 
+			//print_r($p);
+
 			// Update progress bar
 			$progress->advance();
 
@@ -462,7 +465,7 @@ class Gmv extends Arc\Singleton
 
 			// Insert data
 			$q = "
-			BEGIN;
+			
 			INSERT INTO `#gmaven_property_details`
 			(`gmv_id`, `name`, `customReferenceId`, `displayAddress`, `marketingBlurb`)
 			VALUES (
@@ -478,11 +481,11 @@ class Gmv extends Arc\Singleton
 			 LAST_INSERT_ID(),
 			 ".$p->geo->lon.",
 			 ".$p->geo->lat.",
-			 ".(!empty($p->basic->gla)                    ? $p->basic->gla                    : 0).",
-			 ".(!empty($p->vacancy->currentVacantArea)    ? $p->vacancy->currentVacantArea    : 0).",
-			 ".(!empty($p->vacancy->weightedAskingRental) ? $p->vacancy->weightedAskingRental : 0).",
-			 ".(!empty($p->basic->forSale)                ? $p->basic->forSale                : 0).",
-			 ".(!empty($p->sales->askingPrice)            ? $p->sales->askingPrice            : 0).",
+			 ".((isset($p->basic->gla)                    and !empty($p->basic->gla))                    ? $p->basic->gla                           : 0).",
+			 ".((isset($p->vacancy->currentVacantArea)    and !empty($p->vacancy->currentVacantArea))    ? round($p->vacancy->currentVacantArea)    : 0).",
+			 ".((isset($p->vacancy->weightedAskingRental) and !empty($p->vacancy->weightedAskingRental)) ? round($p->vacancy->weightedAskingRental) : 0).",
+			 ".((isset($p->basic->forSale)                and !empty($p->basic->forSale))                ? $p->basic->forSale                       : 0).",
+			 ".((isset($p->sales->askingPrice)            and !empty($p->sales->askingPrice))            ? $p->sales->askingPrice                   : 0).",
 			 ".$catId.",
 			 ".$pid.",
 			 ".$cid.",
@@ -490,8 +493,10 @@ class Gmv extends Arc\Singleton
 			 ".$this->time.",
 			 ".(isset($p->updated) ? round($p->_updated) : 0)."
 			);
-			COMMIT;
+			
 			";
+
+			//print $q; die();
 
 			// @todo Do a check and make sure the number of details entries match the number of properties
 
@@ -539,9 +544,6 @@ class Gmv extends Arc\Singleton
 
 			// Query
 			$query = [
-				//'isArchived' => [
-				//	"\$in" => ["\$null", "false"]
-				//],
 				'propertyId' => [
 					"\$in" => $gmvIds
 				]
@@ -599,6 +601,9 @@ class Gmv extends Arc\Singleton
 				// Go
 				if(isset($u->propertyId) and !empty($u->propertyId) ){
 
+					// Ignore these
+					if(empty($u->vacancy->leasingStatus) or $u->vacancy->leasingStatus == ''){continue;}
+
 					// Find Property id
 					if(isset($u->propertyId) and $propertyId = addslashes($u->propertyId)){
 						
@@ -606,7 +611,7 @@ class Gmv extends Arc\Singleton
 						$q = '
 							SELECT P.`id` FROM `#gmaven_property_details` D
 							LEFT JOIN `#gmaven_properties` P ON P.`did` = D.`id`
-							WHERE `gmv_id` = "'.$propertyId.'"';
+							WHERE D.`gmv_id` = "'.$propertyId.'"';
 
 						// Execute query
 						$pid = $db->query($q)->get_one('id');
@@ -665,7 +670,7 @@ class Gmv extends Arc\Singleton
 					".((isset($u->vacancy->leasingStatus) and !empty($u->vacancy->leasingStatus))                       ? "'".addslashes($u->vacancy->leasingStatus)."'"            : 'NULL').",
 					".((isset($u->sales->salesStatus) and !empty($u->sales->salesStatus))                               ? "'".addslashes($u->sales->salesStatus)."'"                : 'NULL').",
 					".$this->time.",
-					".(isset($u->updated) ? round($u->_updated) : 0)."
+					".(isset($u->_updated) ? round($u->_updated) : 0)."
 					);
 					";
 

@@ -523,7 +523,7 @@ class Gmv extends Arc\Singleton
 		}
 
 		// Do not max out Gmaven
-		$sets = array_chunk($r, ceil(count($r) / 2));
+		$sets = array_chunk($r, ceil(count($r) / 6));
 
 		// Vars
 		$query = [];
@@ -534,7 +534,7 @@ class Gmv extends Arc\Singleton
 		foreach($sets as $k => $arr){
 
 			// Info
-			$this->cli->green('Fetching '. ($k+1) . ' of ' . count($sets).' unit sets.');
+			$this->cli->green('Fetching ' . ($k+1) . ' of ' . count($sets).' unit sets.');
 
 			// Build array of properties
 			$gmvIds = [];

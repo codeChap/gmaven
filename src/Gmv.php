@@ -516,14 +516,17 @@ class Gmv extends Arc\Singleton
 		// Fire up database and get properties
 		$db = Db::forge($this->get_config());
 		$r = $db->query("SELECT `gmv_id` FROM `#gmaven_property_details`")->get();
+		//$r = $db->query("SELECT `gmv_id` FROM `#gmaven_property_details` WHERE `gmv_id` = '5b83ecbf-5c1b-438b-bfd9-99394d5b1774'")->get();
+
 
 		// Clear out old records
 		if($fromWhen == false){
-			$db->query("TRUNCATE TABLE `#gmaven_units`")->exec();
+			$db->query("TRUNCATE TABLE `#gmaven_units`");
+			$db->exec();
 		}
 
 		// Do not max out Gmaven
-		$sets = array_chunk($r, ceil(count($r) / 6));
+		$sets = array_chunk($r, ceil(count($r) / 3));
 
 		// Vars
 		$query = [];
@@ -533,14 +536,14 @@ class Gmv extends Arc\Singleton
 		// We have to do this one by one because Gmaven currently maxes out
 		foreach($sets as $k => $arr){
 
-			// Info
-			$this->cli->green('Fetching ' . ($k+1) . ' of ' . count($sets).' unit sets.');
-
 			// Build array of properties
 			$gmvIds = [];
 			foreach($arr as $v){
 				$gmvIds[] = $v['gmv_id'];
 			}
+
+			// Info
+			$this->cli->green('Fetching ' . ($k+1) . ' of ' . count($sets).' unit sets.');
 
 			// Query
 			$query = [

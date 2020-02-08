@@ -326,7 +326,7 @@ class Gmv extends Arc\Singleton
 		$query = [];
 		$from  = [];
 
-		// Ignore archived results
+		// Ignore archived and private stock results
 		$query = [
 			'isArchived' => [
 				"\$in" => ["\$null", "false"]

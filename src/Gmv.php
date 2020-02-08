@@ -332,9 +332,9 @@ class Gmv extends Arc\Singleton
 				"\$in" => ["\$null", "false"]
 			],
 			'sales.privateStock' => [
-				"\$in" => ["\$null", "false"]
+				"\$in" => ["\$null", "false", "no", "No"]
 			],
-			//'id' => ["\$in" => ['3597bdf5-bf22-4bb0-8ea7-62b26c92077b']]
+			//'id' => ["\$in" => ['15871ad8-b8b4-4e64-b8e2-a8484d76f299']]
 		];
 
 		// Partial or full sync

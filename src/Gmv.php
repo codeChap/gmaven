@@ -1008,7 +1008,6 @@ class Gmv extends Arc\Singleton
 								}
 							}
 						}
-						break;
 					}
 				}
 			}

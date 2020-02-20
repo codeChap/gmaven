@@ -326,7 +326,7 @@ class Gmv extends Arc\Singleton
 		$query = [];
 		$from  = [];
 
-		// Ignore archived and private stock results
+		// Ignore archived
 		$query = [
 			'isArchived' => [
 				"\$in" => ["\$null", "false"]
@@ -431,6 +431,17 @@ class Gmv extends Arc\Singleton
 				}
 			}
 
+			// Check for other private stock flags
+			if(isset($p->basic->sales->privateStock) and !empty($p->basic->sales->privateStock)){
+				switch($p->basic->sales->privateStock){
+					case 'yes' :
+					case 'Yes' :
+					case 'YES' :
+					case 1 :
+					continue 2;
+				}
+			}
+
 			// Find province, city, suburb and category id
 			if(isset($p->basic->primaryCategory) and !empty($p->basic->primaryCategory)){
 				$catId = $db->query("SELECT `id` FROM `#gmaven_categories` WHERE `category` = '".(addslashes($p->basic->primaryCategory))."'")->get_one('id');
@@ -517,7 +528,6 @@ class Gmv extends Arc\Singleton
 		$db = Db::forge($this->get_config());
 		$r = $db->query("SELECT `gmv_id` FROM `#gmaven_property_details`")->get();
 		//$r = $db->query("SELECT `gmv_id` FROM `#gmaven_property_details` WHERE `gmv_id` = '5b83ecbf-5c1b-438b-bfd9-99394d5b1774'")->get();
-
 
 		// Clear out old records
 		if($fromWhen == false){
@@ -685,153 +695,6 @@ class Gmv extends Arc\Singleton
 
 		// Return totals
 		return $rT;
-	}
-
-	/**
-	 * Fetch units of properties
-	 *
-	 * @param Int Timestamp of when to start syncing from
-	 */
-	public function getUnitsss($fromWhen = false)
-	{
-		// Vars
-		$query = [];
-		$from = [];
-
-		$query = [
-			'isArchived' => [
-				"\$in" => ["\$null", "false"]
-			]
-		];
-
-		// Partial or full sync @todo Remove, record a timestamp instead
-		if($fromWhen){
-			$from = [
-				"_updated" => ["\$gte" => $fromWhen]
-			];
-		}
-
-		// Call Gmaven to get total properties
-		$r = $this->post('data/custom/propertyUnit/search', [
-			'sourceFields' => ['id'],
-			'query'        => $query + $from,
-			'page'         => ['number' => 1, 'size' => 1]
-		]);
-		$t = $r->md->totalResults;
-
-		// Info
-		$this->cli->green('Fetching '.$t.' units.');
-
-		// Only continue if there is work to be done
-		if($t == 0){
-			return;
-		}
-
-		// Now pull everything
-		$r = $this->post('data/custom/propertyUnit/search', [
-			'sourceFields' => [
-				'id',
-				'_updated',
-				'isArchived',
-				'propertyId',
-				'unitDetails.unitId',
-				'unitDetails.customReferenceId',
-				'unitDetails.gla',
-				'unitDetails.primaryCategory',
-				'vacancy.marketing.availableType',
-				'vacancy.marketing.availableFrom',
-				'vacancy.marketing.noticePeriod',
-				'vacancy.unitDetails.gmr',
-				'vacancy.unitDetails.netAskingRental',
-				'vacancy.sales.marketingHeading',
-				'vacancy.sales.description',
-				'vacancy.unitManagement.status'
-			],
-			'query' => $query + $from,
-			'page'  => ['number' => 1, 'size' => $t]
-		]);
-
-		// Progress bar
-		$progress = $this->cli->progress()->total($t);
-
-		// Forge database connection
-		$db = Db::forge($this->get_config());
-
-		// Clear out existing entries
-		if($fromWhen == false){
-			$db->query("TRUNCATE TABLE `#gmaven_units`")->exec();
-		}
-
-		// Loop over results
-		foreach($r->list as $i => $u){
-
-			$pid = 0;
-			$catId = 0;
-
-			if(isset($u->propertyId) and !empty($u->propertyId) ){
-
-				// Find Property id
-				if(isset($u->propertyId) and $propertyId = addslashes($u->propertyId)){
-					
-					// Build query
-					$q = '
-						SELECT P.`id` FROM `#gmaven_property_details` D
-						LEFT JOIN `#gmaven_properties` P ON P.`did` = D.`id`
-						WHERE `gmv_id` = "'.$propertyId.'"';
-
-					// Execute query
-					$pid = $db->query($q)->get_one('id');
-
-					if(empty($pid)){
-						$pid = 0;
-					}
-				}
-
-				// Find category id
-				if(isset($u->unitDetails->primaryCategory) and $catgoryId = addslashes($u->unitDetails->primaryCategory)){
-					$catId = $db->query("SELECT `id` FROM `#gmaven_categories` WHERE `category` = '".$catgoryId."'")->get_one('id');
-				}
-
-				// Check for existing entry
-				if($eId = $db->query("SELECT `id` FROM `#gmaven_units` WHERE `gmv_id` = '".$u->id."'")->get_one('id')){
-					$db->query("DELETE FROM `#gmaven_units` WHERE `id` = ".$eId)->exec();
-				}
-
-				// Insert data
-				$q = "
-				INSERT INTO `#gmaven_units`
-				(`pid`, `category_id`, `gla`, `gmr`, `netAskingRental`, `availableFrom`, `propertyId`, `gmv_id`, `unitId`, `customReferenceId`, `availableType`, `marketingHeading`, `description`, `updated_at`, `gmv_updated`)
-				VALUES (
-				 ".$pid.",
-				 ".$catId.",
-				 ".((isset($u->unitDetails->gla) and is_numeric($u->unitDetails->gla))                                           ? $u->unitDetails->gla : 0).",
-				 ".((isset($u->vacancy->unitDetails->gmr) and is_numeric($u->vacancy->unitDetails->gmr))                         ? $u->vacancy->unitDetails->gmr : 0).",
-				 ".((isset($u->vacancy->unitDetails->netAskingRental) and is_numeric($u->vacancy->unitDetails->netAskingRental)) ? $u->vacancy->unitDetails->netAskingRental : 0).",
-				 ".((isset($u->vacancy->marketing->availableFrom) and is_numeric($u->vacancy->marketing->availableFrom))         ? round($u->vacancy->marketing->availableFrom) : 0).",
-				 '".$propertyId."',
-				 '".addslashes($u->id)."',
-				 ".((isset($u->unitDetails->unitId) and !empty($u->unitDetails->unitId))                             ? "'".addslashes($u->unitDetails->unitId)."'"              : 'NULL').",
-				 ".((isset($u->unitDetails->customReferenceId) and !empty($u->unitDetails->customReferenceId))       ? "'".addslashes($u->unitDetails->customReferenceId)."'"    : 'NULL').",
-				 ".((isset($u->vacancy->marketing->availableType) and !empty($u->vacancy->marketing->availableType)) ? "'".addslashes($u->vacancy->marketing->availableType)."'" : 'NULL').",
-				 ".((isset($u->vacancy->sales->marketingHeading) and !empty($u->vacancy->sales->marketingHeading))   ? "'".addslashes($u->vacancy->sales->marketingHeading)."'"  : 'NULL').",
-				 ".((isset($u->vacancy->sales->description) and !empty($u->vacancy->sales->description))             ? "'".addslashes($u->vacancy->sales->description)."'"       : 'NULL').",
-				 ".$this->time.",
-				 ".(isset($u->updated) ? round($u->_updated) : 0)."
-				);
-				";
-
-				//$this->cli->green($q);
-
-				// Insert
-				$db->query($q)->exec();
-			}
-
-			// Update progress bar
-			$progress->advance();
-		}
-
-		// Return totals
-		return $t;
 	}
 
 	/**

@@ -331,9 +331,6 @@ class Gmv extends Arc\Singleton
 			'isArchived' => [
 				"\$in" => ["\$null", "false"]
 			],
-			'sales.privateStock' => [
-				"\$in" => ["\$null", "false"]
-			],
 			//'id' => ["\$in" => ['15871ad8-b8b4-4e64-b8e2-a8484d76f299']]
 		];
 
@@ -434,10 +431,11 @@ class Gmv extends Arc\Singleton
 			// Check for other private stock flags
 			if(isset($p->basic->sales->privateStock) and !empty($p->basic->sales->privateStock)){
 				switch($p->basic->sales->privateStock){
-					case 'yes' :
-					case 'Yes' :
-					case 'YES' :
-					case 1 :
+					case 'true' :
+					case 1      :
+					case 'yes'  :
+					case 'Yes'  :
+					case 'YES'  :
 					continue 2;
 				}
 			}
